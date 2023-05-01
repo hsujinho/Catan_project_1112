@@ -52,6 +52,8 @@ typedef struct Player{
     const int id;
     int VP;
     int resource[5]; // 0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
+    int road;
+    int knight;
 }player;
 
 typedef struct Piece{
