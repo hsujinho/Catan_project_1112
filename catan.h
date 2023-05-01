@@ -44,8 +44,8 @@
 #define PLAYER4 4
 
 typedef struct Point{
-    int x;
-    int y;
+    const int x;
+    const int y;
 }point;
 
 typedef struct Player{
@@ -54,17 +54,22 @@ typedef struct Player{
     int resource[5]; // 0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
     int number_of_knights;
     int length_of_road;
+    int number_of_dev_card;
+    bool has_longest_road;
+    bool has_most_knights;
 }player;
 
 typedef struct Piece{
     point p;
-    int eco_type;
+    const int eco_type;
+    int number;
     bool robberFlag;
 }piece;
 
 typedef struct LandBetween{
     point p;
     int type;
+    bool has_building;
     int owner;
     int building;
 }landbetween;
