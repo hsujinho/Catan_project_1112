@@ -8,6 +8,10 @@
 #include <time.h>
 #include "linuxlist.h"
 
+#define ARR_NUM(arr, type) (sizeof(arr) / sizeof(type))
+
+#define TIMES 100
+
 #define X_LONG 11
 #define Y_LONG 12
 
@@ -28,11 +32,11 @@
 
 #define RESOURCE_NUM 19
 
-#define ECOSYSTEM 0
-#define MINE 1
-#define FOREST 2
-#define PASTURE 3
-#define FIELD 4
+#define HILL 0
+#define FOREST 1
+#define MOUNTAIN 2
+#define FIELD 3
+#define PASTURE 4
 #define DESERT 5
 
 #define PIECE_POINT 1
@@ -46,14 +50,15 @@
 
 #define PIECE_NUM 19
 #define LAND_NUM 54
+#define PLAYER_NUM 4
 
 typedef struct Point{
-    const int x;
-    const int y;
+    int x;
+    int y;
 }point;
 
 typedef struct Player{
-    const int id;
+    int id;
     int VP;
     int resource[5]; // 0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
     int number_of_knights;
@@ -65,7 +70,7 @@ typedef struct Player{
 
 typedef struct Piece{
     point p;
-    const int eco_type;
+    int eco_type;
     int number;
     bool robberFlag;
 }piece;
@@ -107,11 +112,14 @@ const int valid_point_mat[Y_LONG][X_LONG] = {
 };
 
 int resource[5] = {RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM};
+int eco_num[6] = {3, 4, 3, 4, 4, 1};
 
-void init_game();
+void randomize(void **array, size_t n, size_t size);
+void init_game(piece **pieces, landbetween **lands, road **roads, player **players);
 player **init_player();
 void init_map(piece **pieces, landbetween **lands, road **roads);
 piece **init_piece();
+int piece_index(int x, int y, piece **pieces);
 landbetween **init_landbetween();
 road **init_road();
 int build_road(road **roads, player **players, int player_id, point start, point end);
@@ -133,3 +141,126 @@ void knight_action();
 void monopoly_action();
 void free_road_building_action();
 void year_of_plenty_action();
+
+void randomize(void **array, size_t n, size_t size){
+    srand(time(NULL));
+    if(n > 1){
+        for(int i = 0; i < TIMES; i++){
+            int a = rand() % n;
+            int b = rand() % n;
+            if(a == b)
+                continue;
+
+            void *temp = malloc(size);
+            memcpy(temp, array[a], size);
+            memcpy(array[a], array[b], size);
+            memcpy(array[b], temp, size);
+            free(temp);
+        }
+    }
+}
+
+void init_game(piece **pieces, landbetween **lands, road **roads, player **players){
+    pieces = init_piece();
+    players = init_player();
+}
+
+player **init_player(){
+    player **players = (player **)malloc(sizeof(player *) * PLAYER_NUM);
+    for(int i = 0; i < PLAYER_NUM; i++){
+        players[i] = (player *)malloc(sizeof(player));
+        players[i]->id = i;
+        players[i]->VP = 0;
+        for(int j = 0; j < 5; j++)
+            players[i]->resource[j] = 0;
+        players[i]->number_of_knights = 0;
+        players[i]->length_of_road = 0;
+        players[i]->number_of_dev_card = 0;
+        players[i]->has_longest_road = false;
+        players[i]->has_most_knights = false;
+    }
+
+    randomize((void **)players, PLAYER_NUM, sizeof(player *));
+    return players;
+}
+
+piece **init_piece(){
+    srand(time(NULL));
+    piece **pieces = (piece **)malloc(sizeof(piece *) * PIECE_NUM);
+    int p = 0;
+    for(int i = 0; i < Y_LONG; i++){
+        for(int j = 0; j < X_LONG; j++){
+            if(valid_point_mat[i][j] == TYPE_PIECE){
+                pieces[p] = (piece *)malloc(sizeof(piece));
+                pieces[p]->p.x = j;
+                pieces[p]->p.y = i;
+                while(1){
+                    int eco_type = rand() % 6;
+                    if(eco_num[eco_type] > 0){
+                        if(eco_type == DESERT)
+                            pieces[p]->robberFlag = true;
+                        else
+                            pieces[p]->robberFlag = false;
+                        pieces[p]->eco_type = eco_type;
+                        eco_num[eco_type]--;
+                        break;
+                    }
+                }
+                p++;
+            }
+        }
+    }
+
+    const point pos[PIECE_NUM] = {
+        {1, 6}, {2, 8}, {3, 10}, {5, 10}, {7, 10}, {8, 8},
+        {9, 6}, {8, 4}, {7, 2}, {5, 2}, {3, 2}, {2, 4},
+        {3, 6}, {4, 8}, {6, 8}, {7, 6}, {6, 4}, {4, 4}, {5, 6},
+    };
+
+    const int val[PIECE_NUM-1] = {5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11};
+
+    for(int i = 0; i < PIECE_NUM - 1; i++){
+        for(int j = 0; j < PIECE_NUM; j++){
+            if(pieces[j]->p.x == pos[i].x && pieces[j]->p.y == pos[i].y){
+                if(pieces[j]->eco_type != DESERT){
+                    pieces[j]->number = val[i];
+                    pieces[j]->robberFlag = false;
+                }
+                else{
+                    pieces[j]->number = 0;
+                }
+                break;
+            }
+        }
+    }
+
+    eco_num[DESERT] = 1;
+    eco_num[HILL] = 3;
+    eco_num[FOREST] = 4;
+    eco_num[MOUNTAIN] = 3;
+    eco_num[FIELD] = 4;
+    eco_num[PASTURE] = 4;
+
+    randomize((void **)pieces, PIECE_NUM, sizeof(piece *));
+    return pieces;
+}
+
+int piece_index(int x, int y, piece **pieces){
+    for(int i = 0; i < PIECE_NUM; i++){
+        if(pieces[i]->p.x == x && pieces[i]->p.y == y)
+            return i;
+    }
+    return -1;
+}
+
+landbetween **init_landbetween(){
+    landbetween **lands = (landbetween **)malloc(sizeof(landbetween *) * LAND_NUM);
+    for(int i = 0; i < LAND_NUM; i++){
+        lands[i] = (landbetween *)malloc(sizeof(landbetween));
+
+        lands[i]->has_building = false;
+        lands[i]->owner = -1;
+        lands[i]->building = -1;
+    }
+    return lands;
+}
