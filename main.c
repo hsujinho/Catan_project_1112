@@ -1,7 +1,8 @@
 #include "catan.h"
 #include "color.h"
+#include <SDL2/SDL.h>
 
-int main(){
+void print_simple_map(){
     for(int i = 0; i < Y_LONG; i++){
         for(int j = 0; j < X_LONG; j++){
             if(valid_point_mat[i][j] == 0){
@@ -30,6 +31,11 @@ int main(){
         }
         printf("\n");
     }
+}
+
+int main(){
+    // init game data
+    
 
     return 0;
 }
