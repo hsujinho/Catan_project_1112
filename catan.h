@@ -78,6 +78,7 @@ typedef struct Player{
     int number_of_dev_card;
     bool has_longest_road;
     bool has_most_knights;
+    struct list_head *devcard_list;
 }player;
 
 typedef struct Piece{
@@ -154,6 +155,37 @@ void monopoly_action();
 void free_road_building_action();
 void year_of_plenty_action();
 
+void free_player(player **players);
+void free_piece(piece **pieces);
+void free_landbetween(landbetween **lands);
+void free_road(road **roads);
+
+void free_player(player **players){
+    for(int i = 0; i < PLAYER_NUM; i++){
+        free(players[i]->devcard_list);
+        free(players[i]);
+    }
+    free(players);
+}
+
+void free_piece(piece **pieces){
+    for(int i = 0; i < PIECE_NUM; i++)
+        free(pieces[i]);
+    free(pieces);
+}
+
+void free_landbetween(landbetween **lands){
+    for(int i = 0; i < LAND_NUM; i++)
+        free(lands[i]);
+    free(lands);
+}
+
+void free_road(road **roads){
+    for(int i = 0; i < ROAD_NUM; i++)
+        free(roads[i]);
+    free(roads);
+}
+
 void randomize(void **array, size_t n, size_t size){
     srand(time(NULL));
     if(n > 1){
@@ -176,7 +208,7 @@ void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***p
     *pieces = init_piece();
     *players = init_player();
     *lands = init_landbetween();
-    *roads = init_road();
+    *roads = init_road();   
 }
 
 player **init_player(){
@@ -192,6 +224,10 @@ player **init_player(){
         players[i]->number_of_dev_card = 0;
         players[i]->has_longest_road = false;
         players[i]->has_most_knights = false;
+        struct list_head *devcard_list = (struct list_head *)malloc(sizeof(struct list_head));
+        devcard_list->next = devcard_list;
+        devcard_list->prev = devcard_list;
+        players[i]->devcard_list = devcard_list;
     }
 
     randomize((void **)players, PLAYER_NUM, sizeof(player *));
