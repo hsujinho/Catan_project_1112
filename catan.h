@@ -6,14 +6,23 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
+#include <math.h>
+#include <limits.h>
 #include "linuxlist.h"
 
 #define ARR_NUM(arr, type) (sizeof(arr) / sizeof(type))
+#define POINT_AROUND_PIECE(name, x, y) point name[6] = {{x, y-1}, {x-1, y}, {x+1, y}, {x-1, y+1}, {x+1, y+1}, {x, y+2}}
 
+// randomize times
 #define TIMES 100
 
+// map size
 #define X_LONG 11
 #define Y_LONG 12
+
+// building type
+#define SETTLEMENT 1
+#define CITY 2
 
 #define TYPE_LANDBETWEEN 1
 #define TYPE_PIECE 2
@@ -24,14 +33,14 @@
 #define TYPE_PORT_GRAIN 7
 #define TYPE_PORT_ORE 8
 
+// resource type
 #define BRICK 0
 #define LUMBER 1
 #define WOOL 2
 #define GRAIN 3
 #define ORE 4
 
-#define RESOURCE_NUM 19
-
+// piece type
 #define HILL 0
 #define FOREST 1
 #define MOUNTAIN 2
@@ -48,9 +57,12 @@
 #define PLAYER3 3
 #define PLAYER4 4
 
+// number of element 
 #define PIECE_NUM 19
 #define LAND_NUM 54
 #define PLAYER_NUM 4
+#define ROAD_NUM 72
+#define RESOURCE_NUM 19
 
 typedef struct Point{
     int x;
@@ -115,7 +127,7 @@ int resource[5] = {RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOU
 int eco_num[6] = {3, 4, 3, 4, 4, 1};
 
 void randomize(void **array, size_t n, size_t size);
-void init_game(piece **pieces, landbetween **lands, road **roads, player **players);
+void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players);
 player **init_player();
 void init_map(piece **pieces, landbetween **lands, road **roads);
 piece **init_piece();
@@ -127,7 +139,7 @@ int build_building(landbetween **lands, player **players, int player_id, point p
 void take_initial_resource(landbetween **lands, player **players, int player_id, int dice);
 void player_round(const int player_id, landbetween **lands, player **players, piece **pieces, road **roads);
 int roll_dice();
-int take_resource();
+int take_resource(int DP, piece **pieces, player **players, landbetween **lands, int *resource, int first_id);
 void robber_situation();
 int discard_resource();
 int build_action();
@@ -160,16 +172,18 @@ void randomize(void **array, size_t n, size_t size){
     }
 }
 
-void init_game(piece **pieces, landbetween **lands, road **roads, player **players){
-    pieces = init_piece();
-    players = init_player();
+void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players){
+    *pieces = init_piece();
+    *players = init_player();
+    *lands = init_landbetween();
+    *roads = init_road();
 }
 
 player **init_player(){
     player **players = (player **)malloc(sizeof(player *) * PLAYER_NUM);
     for(int i = 0; i < PLAYER_NUM; i++){
         players[i] = (player *)malloc(sizeof(player));
-        players[i]->id = i;
+        players[i]->id = i + 1;
         players[i]->VP = 0;
         for(int j = 0; j < 5; j++)
             players[i]->resource[j] = 0;
@@ -253,14 +267,213 @@ int piece_index(int x, int y, piece **pieces){
     return -1;
 }
 
+int land_index(const int x, const int y, landbetween **lands){
+    for(int i = 0; i < LAND_NUM; i++){
+        if(lands[i]->p.x == x && lands[i]->p.y == y)
+            return i;
+    }
+    return -1;
+}
+
+int player_index(const int id, player **players){
+    for(int i = 0; i < PLAYER_NUM; i++){
+        if(players[i]->id == id)
+            return i;
+    }
+    return -1;
+}
+
 landbetween **init_landbetween(){
     landbetween **lands = (landbetween **)malloc(sizeof(landbetween *) * LAND_NUM);
     for(int i = 0; i < LAND_NUM; i++){
         lands[i] = (landbetween *)malloc(sizeof(landbetween));
-
         lands[i]->has_building = false;
         lands[i]->owner = -1;
         lands[i]->building = -1;
     }
+
+    int p = 0;
+    for(int i = 0; i < Y_LONG; i++){
+        for(int j = 0; j < X_LONG; j++){
+            if(valid_point_mat[i][j] != TYPE_PIECE && valid_point_mat[i][j] != 0){
+                lands[p]->p.x = j;
+                lands[p]->p.y = i;
+                lands[p]->type = valid_point_mat[i][j];
+                p++;
+            }
+        }
+    }
+
     return lands;
+}
+
+road **init_road(){
+    road **roads = (road **)malloc(sizeof(road *) * ROAD_NUM);
+    for(int i = 0; i < ROAD_NUM; i++){
+        roads[i] = (road *)malloc(sizeof(road));
+        roads[i]->owner = -1;
+    }
+
+    int p = 0;
+    /*      /\/\/\      */
+    for(int i = 0; i < 3; i++){
+        roads[p]->start.x = 3 + i * 2;
+        roads[p]->start.y = 0;
+        roads[p+1]->start = roads[p]->start;
+        roads[p]->end.x = 2 + i * 2;
+        roads[p]->end.y = 1;
+        roads[p+1]->end.x = 4 + i * 2;
+        roads[p+1]->end.y = 1;
+        p += 2;
+    }
+
+    /*      | | | |        */
+    for(int i = 0; i < 4; i++){
+        roads[p]->start.x = 2 + i * 2;
+        roads[p]->start.y = 1;
+        roads[p]->end.x = 2 + i * 2;
+        roads[p]->end.y = 2;
+        p++;
+    }
+
+    /*      /\/\/\/\        */
+    for(int i = 0; i < 4; i++){
+        roads[p]->start.x = 2 + i * 2;
+        roads[p]->start.y = 2;
+        roads[p+1]->start = roads[p]->start;
+        roads[p]->end.x = 1 + i * 2;
+        roads[p]->end.y = 3;
+        roads[p+1]->end.x = 3 + i * 2;
+        roads[p+1]->end.y = 3;
+        p += 2;
+    }
+
+    /*      | | | | |       */
+    for(int i = 0; i < 5; i++){
+        roads[p]->start.x = 1 + i * 2;
+        roads[p]->start.y = 3;
+        roads[p]->end.x = 1 + i * 2;
+        roads[p]->end.y = 4;
+        p++;
+    }
+
+    /*      /\/\/\/\/\      */
+    for(int i = 0; i < 5; i++){
+        roads[p]->start.x = 1 + i * 2;
+        roads[p]->start.y = 4;
+        roads[p+1]->start = roads[p]->start;
+        roads[p]->end.x = 0 + i * 2;
+        roads[p]->end.y = 5;
+        roads[p+1]->end.x = 2 + i * 2;
+        roads[p+1]->end.y = 5;
+        p += 2;
+    }
+
+    /*      | | | | | |     */
+    for(int i = 0; i < 6; i++){
+        roads[p]->start.x = i * 2;
+        roads[p]->start.y = 5;
+        roads[p]->end.x = i * 2;
+        roads[p]->end.y = 6;
+        p++;
+    }
+
+    /*      \/\/\/\/\/      */
+    for(int i = 0; i < 5; i++){
+        roads[p]->end.x = 1 + i * 2;
+        roads[p]->end.y = 7;
+        roads[p+1]->end = roads[p]->end;
+        roads[p]->start.x = i * 2;
+        roads[p]->start.y = 6;
+        roads[p+1]->start.x = 2 + i * 2;
+        roads[p+1]->start.y = 6;
+        p += 2;
+    }
+
+    /*      | | | | |       */
+    for(int i = 0; i < 5; i++){
+        roads[p]->start.x = 1 + i * 2;
+        roads[p]->start.y = 7;
+        roads[p]->end.x = 1 + i * 2;
+        roads[p]->end.y = 8;
+        p++;
+    }
+
+    /*      \/\/\/\/        */
+    for(int i = 0; i < 4; i++){
+        roads[p]->end.x = 2 + i * 2;
+        roads[p]->end.y = 9;
+        roads[p+1]->end = roads[p]->end;
+        roads[p]->start.x = 1 + i * 2;
+        roads[p]->start.y = 8;
+        roads[p+1]->start.x = 3 + i * 2;
+        roads[p+1]->start.y = 8;
+        p += 2;
+    }
+
+    /*      | | | |     */
+    for(int i = 0; i < 4; i++){
+        roads[p]->start.x = 2 + i * 2;
+        roads[p]->start.y = 9;
+        roads[p]->end.x = 2 + i * 2;
+        roads[p]->end.y = 10;
+        p++;
+    }
+
+    /*      \/\/\/      */
+    for(int i = 0; i < 3; i++){
+        roads[p]->end.x = 3 + i * 2;
+        roads[p]->end.y = 11;
+        roads[p+1]->end = roads[p]->end;
+        roads[p]->start.x = 2 + i * 2;
+        roads[p]->start.y = 10;
+        roads[p+1]->start.x = 4 + i * 2;
+        roads[p+1]->start.y = 10;
+        p += 2;
+    }
+
+    return roads;
+}
+
+int roll_dice(){
+    srand(time(NULL));
+    return rand() % 6 + rand() % 6 + 2;
+}
+
+int take_resource(int DP, piece **pieces, player **players, landbetween **lands, int *resource, int first_id){
+    int turn[4] = {0};
+    for(int i = 0; i < 4; i++){
+        int idx = (player_index(first_id, players) + i) % 4;
+        turn[i] = players[idx]->id;
+    }
+
+    // for each player in order
+    for(int k = 0; k < 4; k++){
+        // for each piece with same dice point && doesn't have robber
+        for(int i = 0; i < PIECE_NUM; i++){
+            if(DP == pieces[i]->number && pieces[i]->robberFlag == false){
+                const int x = pieces[i]->p.x;
+                const int y = pieces[i]->p.y;
+                // for each land between around the piece
+                POINT_AROUND_PIECE(pos, x, y);
+                for(int j = 0; j < 6; j++){
+                    // if the land between has building && the owner is the player
+                    if(lands[land_index(pos[j].x, pos[j].y, lands)]->has_building && lands[land_index(pos[j].x, pos[j].y, lands)]->owner == turn[k]){
+                        const int point = lands[land_index(pos[j].x, pos[j].y, lands)]->building;
+                        // if the resource is not enough
+                        if(resource[pieces[i]->eco_type] < point){
+                            players[player_index(turn[k], players)]->resource[pieces[i]->eco_type] += resource[pieces[i]->eco_type];
+                            resource[pieces[i]->eco_type] = 0;
+                        }
+                        else{
+                            players[player_index(turn[k], players)]->resource[pieces[i]->eco_type] += point;
+                            resource[pieces[i]->eco_type] -= point;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return 1;
 }
