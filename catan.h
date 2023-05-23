@@ -139,7 +139,13 @@ const int valid_point_mat[Y_LONG][X_LONG] = {
 int resource[5] = {RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM};
 int eco_num[6] = {3, 4, 3, 4, 4, 1};
 
+// function declaration
+
+// some tool
 void randomize(void **array, size_t n, size_t size);
+int list_head_length(struct list_head *head);
+struct list_head *list_head_at(struct list_head *head, int index);
+
 void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players, struct list_head **devcards);
 player **init_player();
 void init_map(piece **pieces, landbetween **lands, road **roads);
@@ -172,31 +178,26 @@ void free_player(player **players);
 void free_piece(piece **pieces);
 void free_landbetween(landbetween **lands);
 void free_road(road **roads);
+void free_devcard(struct list_head *devcards);
 
-void free_player(player **players){
-    for(int i = 0; i < PLAYER_NUM; i++){
-        free(players[i]->devcard_list);
-        free(players[i]);
+int list_head_length(struct list_head *head){
+    int length = 0;
+    struct list_head *pos = head->next;
+    while(pos != head){
+        length++;
+        pos = pos->next;
     }
-    free(players);
+    return length;
 }
 
-void free_piece(piece **pieces){
-    for(int i = 0; i < PIECE_NUM; i++)
-        free(pieces[i]);
-    free(pieces);
-}
-
-void free_landbetween(landbetween **lands){
-    for(int i = 0; i < LAND_NUM; i++)
-        free(lands[i]);
-    free(lands);
-}
-
-void free_road(road **roads){
-    for(int i = 0; i < ROAD_NUM; i++)
-        free(roads[i]);
-    free(roads);
+struct list_head *list_head_at(struct list_head *head, int th){
+    if(th <= 0 || th > list_head_length(head))
+        return NULL;
+    
+    struct list_head *pos = head;
+    for(int i = 0; i < th; i++)
+        pos = pos->next;
+    return pos;
 }
 
 void randomize(void **array, size_t n, size_t size){
@@ -507,6 +508,13 @@ struct list_head *init_devcard(){
         list_add_tail(&card->node, devcard_list);
     }
 
+    srand(time(NULL));
+    for(int i = 0; i < TIMES; i++){
+        int th = rand() % list_head_length(devcard_list) + 1;
+        struct list_head *pos = list_head_at(devcard_list, th);
+        list_move_tail(pos, devcard_list);
+    }
+
     return devcard_list;
 }
 
@@ -551,4 +559,39 @@ int take_resource(int DP, piece **pieces, player **players, landbetween **lands,
     }
     
     return 1;
+}
+
+void free_player(player **players){
+    for(int i = 0; i < PLAYER_NUM; i++){
+        free(players[i]->devcard_list);
+        free(players[i]);
+    }
+    free(players);
+}
+
+void free_piece(piece **pieces){
+    for(int i = 0; i < PIECE_NUM; i++)
+        free(pieces[i]);
+    free(pieces);
+}
+
+void free_landbetween(landbetween **lands){
+    for(int i = 0; i < LAND_NUM; i++)
+        free(lands[i]);
+    free(lands);
+}
+
+void free_road(road **roads){
+    for(int i = 0; i < ROAD_NUM; i++)
+        free(roads[i]);
+    free(roads);
+}
+
+void free_devcard(struct list_head *devcards){
+    struct list_head *pos = devcards->next;
+    while(pos != devcards){
+        struct list_head *temp = pos->next;
+        free(list_entry(pos, devcard, node));
+        pos = temp;
+    }
 }
