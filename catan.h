@@ -24,6 +24,13 @@
 #define SETTLEMENT 1
 #define CITY 2
 
+// dev card type
+#define KNIGHT 0
+#define MONOPOLY 1
+#define FREE_ROAD_BUILDING 2
+#define YEAR_OF_PLENTY 3
+#define VICTORY_POINT 4
+
 #define TYPE_LANDBETWEEN 1
 #define TYPE_PIECE 2
 #define TYPE_PORT_ANY 3
@@ -63,6 +70,11 @@
 #define PLAYER_NUM 4
 #define ROAD_NUM 72
 #define RESOURCE_NUM 19
+#define KNIGHT_NUM 14
+#define MONOPOLY_NUM 2
+#define FREE_ROAD_BUILDING_NUM 2
+#define YEAR_OF_PLENTY_NUM 2
+#define VICTORY_POINT_NUM 5
 
 typedef struct Point{
     int x;
@@ -128,13 +140,14 @@ int resource[5] = {RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOU
 int eco_num[6] = {3, 4, 3, 4, 4, 1};
 
 void randomize(void **array, size_t n, size_t size);
-void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players);
+void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players, struct list_head **devcards);
 player **init_player();
 void init_map(piece **pieces, landbetween **lands, road **roads);
 piece **init_piece();
 int piece_index(int x, int y, piece **pieces);
 landbetween **init_landbetween();
 road **init_road();
+struct list_head *init_devcard();
 int build_road(road **roads, player **players, int player_id, point start, point end);
 int build_building(landbetween **lands, player **players, int player_id, point p, int building);
 void take_initial_resource(landbetween **lands, player **players, int player_id, int dice);
@@ -204,11 +217,13 @@ void randomize(void **array, size_t n, size_t size){
     }
 }
 
-void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players){
+void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players, struct list_head **devcards){
     *pieces = init_piece();
     *players = init_player();
     *lands = init_landbetween();
     *roads = init_road();   
+    *devcards = init_devcard();
+    
 }
 
 player **init_player(){
@@ -469,6 +484,30 @@ road **init_road(){
     }
 
     return roads;
+}
+
+struct list_head *init_devcard(){
+    struct list_head *devcard_list = (struct list_head *)malloc(sizeof(struct list_head));
+    devcard_list->next = devcard_list;
+    devcard_list->prev = devcard_list;
+
+    for(int i = 0; i < KNIGHT_NUM + MONOPOLY_NUM + FREE_ROAD_BUILDING_NUM + YEAR_OF_PLENTY_NUM + VICTORY_POINT_NUM; i++){
+        devcard *card = (devcard *)malloc(sizeof(devcard));
+        if(i < KNIGHT_NUM)
+            card->type = KNIGHT;
+        else if(i < KNIGHT_NUM + MONOPOLY_NUM)
+            card->type = MONOPOLY;
+        else if(i < KNIGHT_NUM + MONOPOLY_NUM + FREE_ROAD_BUILDING_NUM)
+            card->type = FREE_ROAD_BUILDING;
+        else if(i < KNIGHT_NUM + MONOPOLY_NUM + FREE_ROAD_BUILDING_NUM + YEAR_OF_PLENTY_NUM)
+            card->type = YEAR_OF_PLENTY;
+        else
+            card->type = VICTORY_POINT;
+        card->used = false;
+        list_add_tail(&card->node, devcard_list);
+    }
+
+    return devcard_list;
 }
 
 int roll_dice(){
