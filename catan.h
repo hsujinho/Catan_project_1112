@@ -134,6 +134,14 @@ void monopoly_action();
 void free_road_building_action();
 void year_of_plenty_action();
 
+/* bool is_resource_enough( int32_t *standard, int32_t *input )
+ * Input: 2 integer array with 5 elements { brick, limber, wool, grain, ore }
+ *  standard: to be gotten
+ *  input: size one's need
+ * Output:
+ *  true: enough
+ *  false: not enough
+ */
 bool is_resource_enough( int32_t *standard, int32_t *input )
 {
     if( standard[BRICK] >= input[BRICK] && standard[LUMBER] >= input[LUMBER] &&
@@ -145,33 +153,15 @@ bool is_resource_enough( int32_t *standard, int32_t *input )
     return false;
 }
 
-// bool is_resource_enough( int32_t *input, int32_t standard );
-void trade_with_bank( player *player_A, landbetween **maps )
+/* int32_t trade_with_bank( player *player_A, landbetween **maps, int32_t get_choice, int32_t discard_choice )
+ * Input:
+ *  player *player_A: the player who want's to trade with the bank
+ *  landbetween **maps: ( needed )
+ *  int32_t get_choice: the resource player_A wanna receive
+ *  int32_t discard_choice: the resource player_A wanna discard
+ */
+void trade_with_bank( player *player_A, landbetween **maps, int32_t get_choice, int32_t discard_choice )
 {
-    printf("Select what resource you want to get\n");
-    printf("0 ) brick\n");
-    printf("1 ) lumber\n");
-    printf("2 ) wool\n");
-    printf("3 ) grain\n");
-    printf("4 ) ore\n");
-    printf("-------------------------------------\n");
-    printf("Your choice: ");
-
-    int32_t get_choice = -1;
-    scanf("%d", &get_choice );
-
-    printf("Select what resource you want to discard\n");
-    printf("0 ) brick\n");
-    printf("1 ) lumber\n");
-    printf("2 ) wool\n");
-    printf("3 ) grain\n");
-    printf("4 ) ore\n");
-    printf("-------------------------------------\n");
-    printf("Your choice: ");
-
-    int32_t discard_choice = -1;
-    scanf("%d", &discard_choice );
-
     int32_t credit = trade_with_port( player_A, maps, get_choice );
 
     int32_t resources_discard[5]  = {0};
@@ -185,7 +175,7 @@ void trade_with_bank( player *player_A, landbetween **maps )
 	player_A->resource[ get_choice ] += 1;
 	resource[ discard_choice ] += credit;
 	resource[ get_choice ] -= 1;
-	printf("You have traded with the bank!\n");
+	printf("You have traded with bank!\n");
     }
     else if( !is_resource_enough( player_A->resource, resources_discard ) )
     {
@@ -193,77 +183,35 @@ void trade_with_bank( player *player_A, landbetween **maps )
     }
     else if( !is_resource_enough( resource, resources_get ) )
     {
-	printf("The bank has not enough resource! Sorry!\n");
+	printf("The bank don't have enough resource!\n");
     }
-
+    
     return;
 }
 
-void trade_with_player( player **players, player *player_A )
+/* void trade_with_player( player *candidate, player *player_A, int32_t *resources_discard, int32_t *resources_get )
+ * Input:
+ *  player *candidate: player who player_A wanna trade with
+ *  player *player_A: player who wanna trade
+ *  int32_t *resources_discard: resource player_A wanna give
+ *  int32_t *resources_get: resource player_A wanna receive
+ */
+void trade_with_player( player *candidate, player *player_A, int32_t *resources_discard, int32_t *resources_get, bool candidate_decision )
 {
-    /* Select player to trade */
-    printf("Who do you want to trade ( 1 - 4, and not you ): ");
-    int32_t candidate_index = 0;
-    scanf("%d", &candidate_index );
-	// Error input in candidate_index
-	while( candidate_index <= 0 || candidate_index > 4 || candidate_index == player_A->id )
-	{
-	    printf("Error input. Please try again!\n");
-	    printf("Who do you want to trade: ");
-	    candidate_index = 0;
-	    scanf("%d", &candidate_index );
-	}
-    player *candidate = players[ candidate_index - 1 ];
-    
-
-    /* Select stuff to trade */
-    int32_t resources_discard[5]  = {0};
-    printf("Please enter the corresponding number of resources you wanna give:\n");
-    printf("* brick : ");    scanf("%d", &resources_discard[BRICK]  );
-    printf("* lumber: ");    scanf("%d", &resources_discard[LUMBER] );
-    printf("* wool  : ");    scanf("%d", &resources_discard[WOOL]   );
-    printf("* grain : ");    scanf("%d", &resources_discard[GRAIN]  );
-    printf("* ore   : ");    scanf("%d", &resources_discard[ORE]    );
-    int32_t resources_get[5] = {0};
-    printf("Please enter the corresponding number of resources you wanna get:\n");
-    printf("* brick : ");    scanf("%d", &resources_get[BRICK]  );
-    printf("* lumber: ");    scanf("%d", &resources_get[LUMBER] );
-    printf("* wool  : ");    scanf("%d", &resources_get[WOOL]   );
-    printf("* grain : ");    scanf("%d", &resources_get[GRAIN]  );
-    printf("* ore   : ");    scanf("%d", &resources_get[ORE]    );
-
     if( is_resource_enough( player_A->resource, resources_discard ) && is_resource_enough( candidate->resource, resources_get ) )
     {
-	/* Decide if to change or not */
-	char c = 0;
-	while( ( c = fgetc( stdin ) ) != '\n' && c != EOF ) {}
-	printf("@Player%d: Do you want to trade with player%d ( y / n ): ", candidate->id, player_A->id );
-	char decide_choice = 0;
-	scanf("%c", &decide_choice );
-	if( decide_choice == 'y' )
+	if( candidate_decision )
 	{
 	    for( int32_t i = 0; i < 5; i++ )
 	    {
-		player_A->resource [BRICK]  -= resources_discard[BRICK];
-		player_A->resource [LUMBER] -= resources_discard[LUMBER];
-		player_A->resource [WOOL]   -= resources_discard[WOOL];
-		player_A->resource [GRAIN]  -= resources_discard[GRAIN];
-		player_A->resource [ORE]    -= resources_discard[ORE];
-		candidate->resource[BRICK]  -= resources_get    [BRICK];
-		candidate->resource[LUMBER] -= resources_get    [LUMBER];
-		candidate->resource[WOOL]   -= resources_get    [WOOL];
-		candidate->resource[GRAIN]  -= resources_get    [GRAIN];
-		candidate->resource[ORE]    -= resources_get    [ORE];
+		player_A->resource [i]  -= resources_discard[i];
+		candidate->resource[i]  -= resources_get    [i];
 	    }
 	    printf("You have traded with player%d!\n", candidate->id );
 	}
-	else if( decide_choice == 'n' )
-	{
-	    printf("Sorry! Player%d doesn't want to trade with you!\n", candidate->id );
-	}
 	else
 	{
-	    printf("@Player%d: Error input!\n", candidate->id );
+	    printf("Sorry! Player%d doesn't want to trade with you!\n", candidate->id );
 	}
     }
     else if( !is_resource_enough( player_A->resource, resources_discard ) )
