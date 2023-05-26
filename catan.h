@@ -10,6 +10,12 @@
 #include <limits.h>
 #include "linuxlist.h"
 
+#define WINDOW_WIDTH 600
+#define WINDOW_HEIGHT 600
+#define VIC_LEN 21
+#define Y_OFFSET 80
+#define NUMBER_PIXEL 35
+
 #define ARR_NUM(arr, type) (sizeof(arr) / sizeof(type))
 #define POINT_AROUND_PIECE(name, x, y) point name[6] = {{x, y-1}, {x-1, y}, {x+1, y}, {x-1, y+1}, {x+1, y+1}, {x, y+2}}
 
@@ -21,6 +27,7 @@
 #define Y_LONG 12
 
 // building type
+#define ROAD 0
 #define SETTLEMENT 1
 #define CITY 2
 
@@ -75,7 +82,6 @@
 #define FREE_ROAD_BUILDING_NUM 2
 #define YEAR_OF_PLENTY_NUM 2
 #define VICTORY_POINT_NUM 5
-
 typedef struct Point{
     int x;
     int y;
@@ -120,6 +126,13 @@ typedef struct DevCard{
     struct list_head node;
 }devcard;
 
+typedef struct mapInfo{
+    player **players;
+    piece **pieces;
+    landbetween **lands;
+    road **roads;
+}mapInfo;
+
 // record the valid point to hold data and the type of the point
 const int valid_point_mat[Y_LONG][X_LONG] = {
     {0, 0, 0, TYPE_PORT_ANY, 0, TYPE_PORT_WOOL, 0, TYPE_LANDBETWEEN, 0, 0, 0},
@@ -161,7 +174,9 @@ void player_round(const int player_id, landbetween **lands, player **players, pi
 int roll_dice();
 int take_resource(int DP, piece **pieces, player **players, landbetween **lands, int *resource, int first_id);
 void robber_situation();
-int discard_resource();
+int discard_resource(player **players, int player_id);
+void resource_to_discard(player *player, int **decide_resource);
+void move_robber(int id, piece **pieces);
 int build_action();
 bool is_resource_enough();
 point pick_land();
@@ -219,12 +234,16 @@ void randomize(void **array, size_t n, size_t size){
 }
 
 void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players, struct list_head **devcards){
+    // init item
     *pieces = init_piece();
     *players = init_player();
     *lands = init_landbetween();
     *roads = init_road();   
     *devcards = init_devcard();
     
+    // build initial building
+
+    // take initial resource
 }
 
 player **init_player(){
@@ -254,6 +273,7 @@ piece **init_piece(){
     srand(time(NULL));
     piece **pieces = (piece **)malloc(sizeof(piece *) * PIECE_NUM);
     int p = 0;
+    point desert = {0, 0};
     for(int i = 0; i < Y_LONG; i++){
         for(int j = 0; j < X_LONG; j++){
             if(valid_point_mat[i][j] == TYPE_PIECE){
@@ -263,8 +283,10 @@ piece **init_piece(){
                 while(1){
                     int eco_type = rand() % 6;
                     if(eco_num[eco_type] > 0){
-                        if(eco_type == DESERT)
+                        if(eco_type == DESERT){
                             pieces[p]->robberFlag = true;
+                            pieces[p]->number = 0;
+                        }
                         else
                             pieces[p]->robberFlag = false;
                         pieces[p]->eco_type = eco_type;
@@ -277,6 +299,16 @@ piece **init_piece(){
         }
     }
 
+    randomize((void **)pieces, PIECE_NUM, sizeof(piece *));
+
+    for(int i = 0; i < PIECE_NUM; i++){
+        if(pieces[i]->eco_type == DESERT){
+            desert.x = pieces[i]->p.x;
+            desert.y = pieces[i]->p.y;
+            break;
+        }
+    }
+
     const point pos[PIECE_NUM] = {
         {1, 6}, {2, 8}, {3, 10}, {5, 10}, {7, 10}, {8, 8},
         {9, 6}, {8, 4}, {7, 2}, {5, 2}, {3, 2}, {2, 4},
@@ -285,16 +317,19 @@ piece **init_piece(){
 
     const int val[PIECE_NUM-1] = {5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11};
 
-    for(int i = 0; i < PIECE_NUM - 1; i++){
+    bool desertFlag = false;
+    for(int i = 0; i < PIECE_NUM; i++){
+        if(pos[i].x == desert.x && pos[i].y == desert.y){
+            desertFlag = true;
+            continue;
+        }
         for(int j = 0; j < PIECE_NUM; j++){
             if(pieces[j]->p.x == pos[i].x && pieces[j]->p.y == pos[i].y){
-                if(pieces[j]->eco_type != DESERT){
+                if(desertFlag)
+                    pieces[j]->number = val[i-1];
+                else
                     pieces[j]->number = val[i];
-                    pieces[j]->robberFlag = false;
-                }
-                else{
-                    pieces[j]->number = 0;
-                }
+                pieces[j]->robberFlag = false;
                 break;
             }
         }
@@ -307,7 +342,6 @@ piece **init_piece(){
     eco_num[FIELD] = 4;
     eco_num[PASTURE] = 4;
 
-    randomize((void **)pieces, PIECE_NUM, sizeof(piece *));
     return pieces;
 }
 
@@ -595,3 +629,60 @@ void free_devcard(struct list_head *devcards){
         pos = temp;
     }
 }
+
+// void robber_situation(player **players, int id, piece **pieces){
+//     // let all players discard resource
+//     for(int i = 0; i < PLAYER_NUM; i++)
+//         discard_resource(players, players[i]->id);
+    
+//     // move the robber
+//     if(id == 1)
+//         printf("choose a piece to move the robber\n");
+
+//     move_robber(id, pieces);
+//     // let the player who roll the dice to choose a player to steal resource
+//     // int target_id = steal_resource(id, players);
+//     // steal resource
+//     // steal_resource_action(id, target_id, players);
+// }
+
+// int discard_resource(player **players, int player_id){
+//     player *p = players[player_index(player_id, players)];
+//     // get the total resource num and decide whether to discard
+//     int total = 0;
+//     for(int i = 0; i < 5; i++)
+//         total += p->resource[i];
+//     // if the total resource num is less than 7, no need to discard
+//     if(total <= 7)
+//         return 0;
+//     else{
+//         // get the player's dicision of resource to discard
+//         int decide[5] = {0};
+//         // resource_to_discard(p, &decide);
+//         // discard the resource and add to the bank
+//         for(int i = 0; i < 5; i++){
+//             p->resource[i] -= decide[i];
+//             resource[i] += decide[i];   
+//         }
+//     }
+// }
+
+// void move_robber(int id, piece **pieces){
+//     // get the player's dicision of piece to move the robber
+//     int c = 0;
+//     point p;
+//     while((c = scanf("%d %d", &(p.x), &(p.y))) != 2){
+//         printf("Please input the correct position of the robber.\n");
+//         while(getchar() != '\n');
+//     }
+
+//     // move the robber
+//     for(int i = 0; i < PIECE_NUM; i++){
+//         if(pieces[i]->robberFlag == true){
+//             pieces[i]->robberFlag = false;
+//             break;
+//         }
+//     }
+//     pieces[piece_index(p.x, p.y, pieces)]->robberFlag = true;
+// }
+
