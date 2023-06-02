@@ -94,6 +94,7 @@ typedef struct Player{
     int number_of_knights;
     int length_of_road;
     int number_of_dev_card;
+    int number_of_building[3];
     bool has_longest_road;
     bool has_most_knights;
     struct list_head *devcard_list;
@@ -167,8 +168,8 @@ int piece_index(int x, int y, piece **pieces);
 landbetween **init_landbetween();
 road **init_road();
 struct list_head *init_devcard();
-int build_road(road **roads, player **players, int player_id, point start, point end);
-int build_building(landbetween **lands, player **players, int player_id, point p, int building);
+// int build_road(road **roads, player **players, int player_id, int index);
+// int build_building(landbetween **lands, player **players, int player_id, point p, int building);
 void take_initial_resource(landbetween **lands, player **players, int player_id, int dice);
 void player_round(const int player_id, landbetween **lands, player **players, piece **pieces, road **roads);
 int roll_dice();
