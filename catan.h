@@ -180,9 +180,9 @@ void move_robber(int id, piece **pieces);
 int build_action();
 bool is_resource_enough( int32_t *standard, int32_t *input );
 point pick_land();
-void trade_action();
+void trade_action( mapInfo *info, int32_t id );
 void trade_with_bank( player *player_A, landbetween **maps );
-void trade_with_player( player **players, player *player_A );
+void trade_with_player( player *candidate, player *player_A );
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice );
 void knight_action();
 void monopoly_action();
@@ -699,6 +699,58 @@ bool is_resource_enough( int32_t *standard, int32_t *input )
     return false;
 }
 
+void trade_action( mapInfo *info, int32_t id )
+{
+    /* Select trade action: 1. with bank, 2. with player */
+    printf("Who do you want to trade with?\n");
+    if( id != 1 )	printf("1. Player1\n");
+    if( id != 2 )	printf("2. Player2\n");
+    if( id != 3 )	printf("3. Player3\n");
+    if( id != 4 )	printf("4. Player4\n");
+			printf("5. Bank\n");
+    int32_t choice = 0;
+    scanf("Your choice: %d", &choice );
+	if( choice < 1 || choice > 5 )
+	{
+	    printf("Your choice must be 1 - 5\n");
+	    return;
+	}
+
+    if( choice == 5 )
+    {
+	if( id == 1 )	trade_with_bank( info->players[ PLAYER1 ], info->lands );
+	if( id == 2 )	trade_with_bank( info->players[ PLAYER2 ], info->lands );
+	if( id == 3 )	trade_with_bank( info->players[ PLAYER3 ], info->lands );
+	if( id == 4 )	trade_with_bank( info->players[ PLAYER4 ], info->lands );
+    }
+    else if( choice == 4 )
+    {
+	if( id == 1 )	trade_with_player( info->players[ PLAYER4 ], info->players[ PLAYER1 ] );
+	if( id == 2 )	trade_with_player( info->players[ PLAYER4 ], info->players[ PLAYER2 ] );
+	if( id == 3 )	trade_with_player( info->players[ PLAYER4 ], info->players[ PLAYER3 ] );
+    }
+    else if( choice == 3 )
+    {
+	if( id == 1 )	trade_with_player( info->players[ PLAYER3 ], info->players[ PLAYER1 ] );
+	if( id == 2 )	trade_with_player( info->players[ PLAYER3 ], info->players[ PLAYER2 ] );
+	if( id == 4 )	trade_with_player( info->players[ PLAYER3 ], info->players[ PLAYER4 ] );
+    }
+    else if( choice == 2 )
+    {
+	if( id == 1 )	trade_with_player( info->players[ PLAYER2 ], info->players[ PLAYER1 ] );
+	if( id == 3 )	trade_with_player( info->players[ PLAYER2 ], info->players[ PLAYER3 ] );
+	if( id == 4 )	trade_with_player( info->players[ PLAYER2 ], info->players[ PLAYER4 ] );
+    }
+    else if( choice == 1 )
+    {
+	if( id == 2 )	trade_with_player( info->players[ PLAYER1 ], info->players[ PLAYER2 ] );
+	if( id == 3 )	trade_with_player( info->players[ PLAYER1 ], info->players[ PLAYER3 ] );
+	if( id == 4 )	trade_with_player( info->players[ PLAYER1 ], info->players[ PLAYER4 ] );
+    }
+
+    return;
+}
+
 void trade_with_bank( player *player_A, landbetween **maps )
 {
     /* Get input */
@@ -753,28 +805,11 @@ void trade_with_bank( player *player_A, landbetween **maps )
     return;
 }
 
-void trade_with_player( player **players, player *player_A )
+void trade_with_player( player *candidate, player *player_A )
 {
-    /* Get input */
-    // candidate
-    int32_t candidate_index = 0;
-    printf("Who do you want to trade with ( 1 - 4 ): ");
-    scanf("%d", &candidate_index );
-	if( candidate_index > 4 || candidate_index < 1 )
-	{
-	    printf("You can only choose 1 - 4 and not your id!\n");
-	    return;
-	}
-	if( candidate_index == player_A->id )
-	{
-	    printf("You cannot trade with yourself!\n");
-	    return;
-	}
-    player *candidate = players[ candidate_index - 1 ]; // Check: 1 - 4 -> 0 - 3 ?
-
     // Resources
     int32_t resource_discard[5]  = {0};
-    printf("Whatd do you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
+    printf("What do you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
     scanf("%d %d %d %d %d", &resource_discard[0], &resource_discard[1], &resource_discard[2], &resource_discard[3], &resource_discard[4] );
 
     int32_t resource_get[5]  = {0};
