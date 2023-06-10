@@ -185,7 +185,7 @@ void trade_with_bank( player *player_A, landbetween **maps );
 void trade_with_player( player *candidate, player *player_A );
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice );
 void knight_action();
-void monopoly_action();
+void monopoly_action( player **players, int id );
 void free_road_building_action();
 void year_of_plenty_action();
 
@@ -880,4 +880,27 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
     }
 
     return credit;
+}
+
+void monopoly_action( player **players, int id )
+{
+    int32_t get_choice = 0;
+    printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+    scanf("%d", &get_choice );
+	if( get_choice < 0 || get_choice > 4 )
+	{
+	    printf("You can only type 0 - 4!\n");
+	    return;
+	}
+
+    player *monoply = players[ id - 1 ];
+    for( int32_t i = 0; i < PLAYER_NUM; i++ )
+    {
+	if( i + 1 == id )   continue;
+
+	monoply->resource[ get_choice ] += players[i]->resource[ get_choice ];
+	players[i]->resource[ get_choice ] = 0;
+    }
+
+    return;
 }
