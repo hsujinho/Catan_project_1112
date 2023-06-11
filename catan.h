@@ -688,6 +688,12 @@ void free_devcard(struct list_head *devcards){
 
 
 
+/*
+ * is_resource_enough - to detect is standard is suffucient for input
+ * @standard:	resources now someone has
+ * @input:	resources now someone wants
+ * Note: For each element, standard must be not less than input
+ */
 bool is_resource_enough( int32_t *standard, int32_t *input )
 {
     if( standard[BRICK] >= input[BRICK] && standard[LUMBER] >= input[LUMBER] &&
@@ -699,6 +705,11 @@ bool is_resource_enough( int32_t *standard, int32_t *input )
     return false;
 }
 
+/*
+ * trade_action - selection list for trade action
+ * @info:   access of other game information
+ * @id:	    player who is trading
+ */
 void trade_action( mapInfo *info, int32_t id )
 {
     /* Select trade action: 1. with bank, 2. with player */
@@ -751,6 +762,11 @@ void trade_action( mapInfo *info, int32_t id )
     return;
 }
 
+/*
+ * trade_with_bank - simply trade action with bank
+ * @player_A:	player who is trading
+ * @maps:	for trade_with_port() needed
+ */
 void trade_with_bank( player *player_A, landbetween **maps )
 {
     /* Get input */
@@ -805,6 +821,11 @@ void trade_with_bank( player *player_A, landbetween **maps )
     return;
 }
 
+/*
+ * trade_with_player - trade action from player_A to candidate
+ * @candidate:	player who plaayer_A wants to trade with
+ * @player_A:	player who is trading
+ */
 void trade_with_player( player *candidate, player *player_A )
 {
     // Resources
@@ -863,6 +884,13 @@ void trade_with_player( player *candidate, player *player_A )
     return;
 }
 
+/*
+ * trade_with_port - to detect if player_A can trade with the bank with a cheaper credit
+ * @player_A:	player who trade with the bank
+ * @maps:	Access the port information
+ * @get_choice:	resource that player_A wants to get
+ * Note: this function is embeded in trade_with_bank()
+ */
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice )
 {
     int32_t credit = 4;
@@ -886,6 +914,7 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
  * monopoly_action - Take one certain resource from all the other players
  * @players:	all players
  * @id:		player who use monopoly_action
+ * Warning: Lack of DevCard modification ( used, remove from hand )
  */
 void monopoly_action( player **players, int id )
 {
@@ -912,9 +941,10 @@ void monopoly_action( player **players, int id )
 
 /*
  * year_of_plenty_action - get 2 resource from the bank
- * @pplayers:	all players
+ * @players:	all players
  * @id:		player who use the year_of_plenty_action card
- */
+ * Warning: Lack of DevCard modification ( used, remove from hand )
+ * */
 int32_t year_of_plenty_action( player **players, int id )
 {
     int32_t get_choice1 = 0;
