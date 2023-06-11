@@ -187,7 +187,7 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
 void knight_action();
 void monopoly_action( player **players, int id );
 void free_road_building_action();
-void year_of_plenty_action();
+int32_t year_of_plenty_action( player **players, int id );
 
 void free_player(player **players);
 void free_piece(piece **pieces);
@@ -882,6 +882,11 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
     return credit;
 }
 
+/*
+ * monopoly_action - Take one certain resource from all the other players
+ * @players:	all players
+ * @id:		player who use monopoly_action
+ */
 void monopoly_action( player **players, int id )
 {
     int32_t get_choice = 0;
@@ -903,4 +908,41 @@ void monopoly_action( player **players, int id )
     }
 
     return;
+}
+
+/*
+ * year_of_plenty_action - get 2 resource from the bank
+ * @pplayers:	all players
+ * @id:		player who use the year_of_plenty_action card
+ */
+int32_t year_of_plenty_action( player **players, int id )
+{
+    int32_t get_choice1 = 0;
+    int32_t get_choice2 = 0;
+    printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+    scanf("%d %d", &get_choice1, &get_choice2 );
+	if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
+	{
+	    printf("You can only type 0 - 4!\n");
+	    return -1;
+	}
+
+    int32_t get[5] = {0};
+    get[ get_choice1 ] = 1;
+    get[ get_choice2 ] = 1;
+
+    if( !is_resource_enough( resource, get ) )
+    {
+	printf("The bank has not enough resources\n");
+	return -1;
+    }
+    else
+    {
+	resource[ get_choice1 ] -= 1;
+	resource[ get_choice2 ] -= 1;
+	players[ id - 1 ]->resource[ get_choice1 ] += 1;
+	players[ id - 1 ]->resource[ get_choice2 ] += 1;
+    }
+
+    return 0;
 }
