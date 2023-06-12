@@ -33,6 +33,8 @@ void print_simple_map(){
 }
 
 int main(){ 
+    printf("Welcome to Catan!\n");
+
     //declare variables
     player **players = NULL;
     piece **pieces = NULL;
@@ -57,7 +59,7 @@ int main(){
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
-    SDL_RenderPresent(renderer);
+    render_pieces(renderer, map);
 
     bool isRunning = true;
     while (isRunning) {
