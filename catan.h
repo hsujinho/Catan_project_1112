@@ -211,15 +211,14 @@ void monopoly_action();
 void free_road_building_action();
 void year_of_plenty_action();
 bool is_in_three_pieces_lands_pos(const int x, const int y);
-bool is_occupied(mapInfo *map, const int x, const int y, const int id);
+bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
+bool is_land_connect_other_building(mapInfo *map, const int x, const int y);
 
 void free_player(player **players);
 void free_piece(piece **pieces);
 void free_landbetween(landbetween **lands);
 void free_road(road **roads);
 void free_devcard(struct list_head *devcards);
-
-
 
 // SDL implement
 void render_pieces(SDL_Renderer *renderer, mapInfo *map){
@@ -823,6 +822,26 @@ bool is_land_occupied(mapInfo *map, const int x, const int y, const int id){
     for(int i = 0; i < LAND_NUM; i++){
         if(lands[i]->p.x == x && lands[i]->p.y == y && lands[i]->has_building && lands[i]->owner != id)
             return true;
+    }
+    return false;
+}
+
+bool is_land_connect_other_building(mapInfo *map, const int x, const int y){
+    landbetween **lands = map->lands;
+    road **roads = map->roads;
+    for(int i = 0; i < ROAD_NUM; i++){
+        if(x == roads[i]->start.x && y == roads[i]->start.y){
+            for(int j = 0; j < LAND_NUM; j++){
+                if(lands[j]->p.x == roads[i]->end.x && lands[j]->p.y == roads[i]->end.y && lands[j]->has_building)
+                    return true;
+            }
+        }
+        else if(x == roads[i]->end.x && y == roads[i]->end.y){
+            for(int j = 0; j < LAND_NUM; j++){
+                if(lands[j]->p.x == roads[i]->start.x && lands[j]->p.y == roads[i]->start.y && lands[j]->has_building)
+                    return true;
+            }
+        }
     }
     return false;
 }

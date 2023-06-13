@@ -70,42 +70,102 @@ int main(){
             }      
         }
 
-        // if(!isBuildInitalSettle){
-        //     //setting initial building and take resources
+        if(!isBuildInitalSettle){
+            //setting initial building and take resources
             
-        //     //setting first settlement
-        //     for(int i = 0; i < PLAYER_NUM; i++){
-        //         int id = players[i]->id;
+            int reverse_turn[4] = {0};
+            //setting first settlement
+            for(int i = 0; i < PLAYER_NUM; i++){
+                int id = players[i]->id;
+                reverse_turn[3 - i] = id;
+                if(id == 1){
+                    printf("Please choose your initial building\n");
 
-        //         if(id == 1){
-        //             printf("Please choose your initial building\n");
+                    printf("please enter the x and y coordinate of the point to build your first settlement\n");
+                    int x, y, chk, chk2, chk3, chk4;
+                    while( (chk = scanf("%d %d", &x, &y)) != 2 || (chk2 = !is_in_three_pieces_lands_pos(x, y)) || (chk3 = is_land_occupied(map, x, y, id)) || (chk4 = is_land_connect_other_building(map, x, y))){
+                        if(chk != 2){
+                            printf(RED"Please enter two integers\n"WHITE);
+                            while(getchar() != '\n');
+                        }
+                        else if(chk2){
+                            printf(RED"Please enter a valid coordinate that among 3 pieces\n"WHITE);
+                        }
+                        else if(chk3){
+                            printf(RED"Please enter an unoccupied land\n"WHITE);
+                        }
+                        else if(chk4){
+                            printf(RED"Please enter a land that connect to other building\n"WHITE);
+                        }
+                    }
+                    //build settlement
+                    for(int i = 0; i < LAND_NUM; i++){
+                        if(landbetweens[i]->p.x == x && landbetweens[i]->p.y == y){
+                            landbetweens[i]->building = SETTLEMENT;
+                            landbetweens[i]->owner = id;
+                            landbetweens[i]->has_building = true;
+                            printf("You have built a settlement at (%d, %d)\n", x, y);
+                            break;
+                        }
+                    }
+                    render_map(renderer, map);
+                    
+                    //TODO: build road
+                }
+                else{
+                    // TODO: let bot choose initial building
+                }
+            }
 
-        //             printf("please enter the x and y coordinate of the point to build your first settlement\n");
-        //             int x, y, chk, chk2, chk3;
-        //             while( (chk = scanf("%d %d", &x, &y)) != 2 || (chk2 = !is_in_three_pieces_lands_pos(x, y)) || (chk3 = is_land_occupied(map, x, y, id))){
-        //                 if(chk != 2){
-        //                     RED;printf("Please enter two integers\n");WHITE;
-        //                     while(getchar() != '\n');
-        //                 }
-        //                 else if(chk2){
-        //                     printf("x: %d, y: %d\n", x, y);
-        //                     RED;printf("Please enter a valid coordinate that among 3 pieces\n");WHITE;
-        //                 }
-        //                 else if(chk3){
-        //                     RED;printf("Please enter an unoccupied land\n");WHITE;
-        //                 }
-        //             }
+            for(int i = 0; i < PLAYER_NUM; i++){
+                for(int j = 0; j < PLAYER_NUM; j++){
+                    if(reverse_turn[i] == players[j]->id){
+                        if(reverse_turn[i] == 1){
+                            printf("Please choose your initial building\n");
 
-        //             //build settlement
+                            printf("please enter the x and y coordinate of the point to build your first settlement\n");
+                            int x, y, chk, chk2, chk3, chk4;
+                            while( (chk = scanf("%d %d", &x, &y)) != 2 || (chk2 = !is_in_three_pieces_lands_pos(x, y)) || (chk3 = is_land_occupied(map, x, y, reverse_turn[i])) || (chk4 = is_land_connect_other_building(map, x, y))){
+                                if(chk != 2){
+                                    printf(RED"Please enter two integers\n"WHITE);
+                                    while(getchar() != '\n');
+                                }
+                                else if(chk2){
+                                    printf(RED"Please enter a valid coordinate that among 3 pieces\n"WHITE);
+                                }
+                                else if(chk3){
+                                    printf(RED"Please enter an unoccupied land\n"WHITE);
+                                }
+                                else if(chk4){
+                                    printf(RED"Please enter a land that connect to other building\n"WHITE);
+                                }
+                            }
 
+                            //build settlement
+                            for(int i = 0; i < LAND_NUM; i++){
+                                if(landbetweens[i]->p.x == x && landbetweens[i]->p.y == y){
+                                    landbetweens[i]->building = SETTLEMENT;
+                                    landbetweens[i]->owner = reverse_turn[i];
+                                    landbetweens[i]->has_building = true;
+                                    printf("You have built a settlement at (%d, %d)\n", x, y);
+                                    break;
+                                }
+                            }
 
-        //         }
-        //         else{
+                            render_map(renderer, map);
 
-        //         }
-        //     }
-        //     isBuildInitalSettle = true;
-        // }
+                            //TODO: build road
+                            //TODO: take resources
+                        }
+                        else{
+                            // TODO: let bot choose initial building
+                        }
+                    }
+                }
+            }
+
+            isBuildInitalSettle = true;
+        }
 
         for(int i = 0; i < PLAYER_NUM; i++){
             int id = players[i]->id;
