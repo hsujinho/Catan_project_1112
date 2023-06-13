@@ -123,7 +123,7 @@ int main(){
                         if(reverse_turn[i] == 1){
                             printf("Please choose your initial building\n");
 
-                            printf("please enter the x and y coordinate of the point to build your first settlement\n");
+                            printf("please enter the x and y coordinate of the point to build your second settlement\n");
                             int x, y, chk, chk2, chk3, chk4;
                             while( (chk = scanf("%d %d", &x, &y)) != 2 || (chk2 = !is_in_three_pieces_lands_pos(x, y)) || (chk3 = is_land_occupied(map, x, y, reverse_turn[i])) || (chk4 = is_land_connect_other_building(map, x, y))){
                                 if(chk != 2){
@@ -142,11 +142,11 @@ int main(){
                             }
 
                             //build settlement
-                            for(int i = 0; i < LAND_NUM; i++){
-                                if(landbetweens[i]->p.x == x && landbetweens[i]->p.y == y){
-                                    landbetweens[i]->building = SETTLEMENT;
-                                    landbetweens[i]->owner = reverse_turn[i];
-                                    landbetweens[i]->has_building = true;
+                            for(int k = 0; k < LAND_NUM; k++){
+                                if(landbetweens[k]->p.x == x && landbetweens[k]->p.y == y){
+                                    landbetweens[k]->building = SETTLEMENT;
+                                    landbetweens[k]->owner = reverse_turn[i];
+                                    landbetweens[k]->has_building = true;
                                     printf("You have built a settlement at (%d, %d)\n", x, y);
                                     break;
                                 }
