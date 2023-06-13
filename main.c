@@ -33,15 +33,17 @@ void print_simple_map(){
 }
 
 int main(){ 
-    printf("Welcome to Catan!\n");
+    // printf("Welcome to Catan!\n");
 
     //declare variables
+
     player **players = NULL;
     piece **pieces = NULL;
     landbetween **landbetweens = NULL;
     road **roads = NULL;
     struct list_head *devcards = NULL;
     mapInfo *map = malloc(sizeof(mapInfo));
+    int first_id = map->players[0]->id;
 
     //initialize variables
     init_game(&pieces, &landbetweens, &roads, &players, &devcards);
@@ -56,17 +58,66 @@ int main(){
     SDL_Window *window = SDL_CreateWindow("Catan", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderClear(renderer);
+    //render map
+    render_map(renderer, map);
 
-    render_pieces(renderer, map);
-
-    bool isRunning = true;
-    while (isRunning) {
+    bool isRunning = true, isWindowOpen = true, isBuildInitalSettle = false;
+    while (isRunning && isWindowOpen) {
         SDL_Event event;
         while (SDL_PollEvent(&event) != 0) {
             if (event.type == SDL_QUIT) {
-                isRunning = false;
+                isWindowOpen = false;
+            }      
+        }
+
+        // if(!isBuildInitalSettle){
+        //     //setting initial building and take resources
+            
+        //     //setting first settlement
+        //     for(int i = 0; i < PLAYER_NUM; i++){
+        //         int id = players[i]->id;
+
+        //         if(id == 1){
+        //             printf("Please choose your initial building\n");
+
+        //             printf("please enter the x and y coordinate of the point to build your first settlement\n");
+        //             int x, y, chk, chk2, chk3;
+        //             while( (chk = scanf("%d %d", &x, &y)) != 2 || (chk2 = !is_in_three_pieces_lands_pos(x, y)) || (chk3 = is_land_occupied(map, x, y, id))){
+        //                 if(chk != 2){
+        //                     RED;printf("Please enter two integers\n");WHITE;
+        //                     while(getchar() != '\n');
+        //                 }
+        //                 else if(chk2){
+        //                     printf("x: %d, y: %d\n", x, y);
+        //                     RED;printf("Please enter a valid coordinate that among 3 pieces\n");WHITE;
+        //                 }
+        //                 else if(chk3){
+        //                     RED;printf("Please enter an unoccupied land\n");WHITE;
+        //                 }
+        //             }
+
+        //             //build settlement
+
+
+        //         }
+        //         else{
+
+        //         }
+        //     }
+        //     isBuildInitalSettle = true;
+        // }
+
+        for(int i = 0; i < PLAYER_NUM; i++){
+            int id = players[i]->id;
+            //roll dice and take resources
+            int dice = roll_dice();
+            // printf("Player %d rolls %d points\n", id, dice);
+            // take_resource(dice, map, resource, first_id);
+            if(id == 1){
+                
+            }
+            else{
+
             }
         }
     }
