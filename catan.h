@@ -78,6 +78,10 @@
 #define PLAYER3 3
 #define PLAYER4 4
 
+#define LD 0
+#define RD 1
+#define D  2
+
 // number of element 
 #define PIECE_NUM 19
 #define LAND_NUM 54
@@ -125,6 +129,7 @@ typedef struct Road{
     point start;
     point end;
     int owner;
+    int dir;
 }road;
 
 typedef struct DevCard{
@@ -296,6 +301,7 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
 
     piece **pieces = map->pieces;
     landbetween **lands = map->lands;
+    road **roads = map->roads;
 
     for(int i = 0; i < PIECE_NUM; i++){
         int x = pieces[i]->p.x;
@@ -403,7 +409,18 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
         // SDL_RenderFillRect(renderer, &land_rect);
         SDL_DestroyTexture(land_texture);
         SDL_FreeSurface(land_surface);
-    }
+    }   
+
+    // for(int i = 0; i < ROAD_NUM; i++){
+    //     int x1 = map->roads[i]->start.x;
+    //     int y1 = map->roads[i]->start.y;
+    //     int x2 = map->roads[i]->end.x;
+    //     int y2 = map->roads[i]->end.y;
+
+    //     SDL_Surface *piece_surface = NULL;
+    //     if(roads[i]->dir = LD)
+    //         piece_surface = IMG_Load("picture/LD_.png");
+    // }
 
     SDL_RenderPresent(renderer);
 }
@@ -622,6 +639,8 @@ road **init_road(){
         roads[p+1]->end.x = 4 + i * 2;
         roads[p+1]->end.y = 1;
         p += 2;
+        roads[p]->dir = LD;
+        roads[p+1]->dir = RD;
     }
 
     /*      | | | |        */
@@ -631,6 +650,7 @@ road **init_road(){
         roads[p]->end.x = 2 + i * 2;
         roads[p]->end.y = 2;
         p++;
+        roads[p]->dir = D;
     }
 
     /*      /\/\/\/\        */
@@ -643,6 +663,8 @@ road **init_road(){
         roads[p+1]->end.x = 3 + i * 2;
         roads[p+1]->end.y = 3;
         p += 2;
+        roads[p]->dir = LD;
+        roads[p+1]->dir = RD;
     }
 
     /*      | | | | |       */
@@ -652,6 +674,7 @@ road **init_road(){
         roads[p]->end.x = 1 + i * 2;
         roads[p]->end.y = 4;
         p++;
+        roads[p]->dir = D;
     }
 
     /*      /\/\/\/\/\      */
@@ -664,6 +687,8 @@ road **init_road(){
         roads[p+1]->end.x = 2 + i * 2;
         roads[p+1]->end.y = 5;
         p += 2;
+        roads[p]->dir = LD;
+        roads[p+1]->dir = RD;
     }
 
     /*      | | | | | |     */
@@ -673,6 +698,7 @@ road **init_road(){
         roads[p]->end.x = i * 2;
         roads[p]->end.y = 6;
         p++;
+        roads[p]->dir = D;
     }
 
     /*      \/\/\/\/\/      */
@@ -685,6 +711,8 @@ road **init_road(){
         roads[p+1]->start.x = 2 + i * 2;
         roads[p+1]->start.y = 6;
         p += 2;
+        roads[p]->dir = RD;
+        roads[p+1]->dir = LD;
     }
 
     /*      | | | | |       */
@@ -694,6 +722,7 @@ road **init_road(){
         roads[p]->end.x = 1 + i * 2;
         roads[p]->end.y = 8;
         p++;
+        roads[p]->dir = D;
     }
 
     /*      \/\/\/\/        */
@@ -706,6 +735,8 @@ road **init_road(){
         roads[p+1]->start.x = 3 + i * 2;
         roads[p+1]->start.y = 8;
         p += 2;
+        roads[p]->dir = RD;
+        roads[p+1]->dir = LD;
     }
 
     /*      | | | |     */
@@ -715,6 +746,7 @@ road **init_road(){
         roads[p]->end.x = 2 + i * 2;
         roads[p]->end.y = 10;
         p++;
+        roads[p]->dir = D;
     }
 
     /*      \/\/\/      */
@@ -727,6 +759,8 @@ road **init_road(){
         roads[p+1]->start.x = 4 + i * 2;
         roads[p+1]->start.y = 10;
         p += 2;
+        roads[p]->dir = RD;
+        roads[p+1]->dir = LD;
     }
 
     return roads;
