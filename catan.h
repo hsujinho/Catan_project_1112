@@ -9,15 +9,22 @@
 #include <math.h>
 #include <limits.h>
 #include "linuxlist.h"
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL.h>
 
-#define WINDOW_WIDTH 600
-#define WINDOW_HEIGHT 600
-#define VIC_LEN 21
+#define WINDOW_WIDTH 700
+#define WINDOW_HEIGHT 700
+#define PIECE_SIZE 100
+#define VIC_LEN (PIECE_SIZE / 4 + PIECE_SIZE / 20)
+#define NUM_SIZE (PIECE_SIZE / 4 + PIECE_SIZE / 10)
+#define LAND_SIZE (PIECE_SIZE / 4 + PIECE_SIZE / 10)
+#define NUM_OFFSET ((PIECE_SIZE - NUM_SIZE) / 2)
 #define Y_OFFSET 80
 #define NUMBER_PIXEL 35
 
 #define ARR_NUM(arr, type) (sizeof(arr) / sizeof(type))
-#define POINT_AROUND_PIECE(name, x, y) point name[6] = {{x, y-1}, {x-1, y}, {x+1, y}, {x-1, y+1}, {x+1, y+1}, {x, y+2}}
+#define POINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-d}, {x-d, y}, {x+d, y}, {x-d, y+d}, {x+d, y+d}, {x, y+d}}
+#define EPOINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-2*d}, {x-2*d, y-d}, {x-2*d, y+d}, {x, y+2*d}, {x+2*d, y+d}, {x+2*d, y-d}}
 
 // randomize times
 #define TIMES 100
@@ -151,14 +158,29 @@ const int valid_point_mat[Y_LONG][X_LONG] = {
 
 int resource[5] = {RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM, RESOURCE_NUM};
 int eco_num[6] = {3, 4, 3, 4, 4, 1};
+const point three_pieces_lands_pos[24] = {
+    {4, 2}, {6, 2}, 
+    {3, 3}, {5, 3}, {7, 3},
+    {3, 4}, {5, 4}, {7, 4},
+    {2, 5}, {4, 5}, {6, 5}, {8, 5},
+    {2, 6}, {4, 6}, {6, 6}, {8, 6},
+    {3, 7}, {5, 7}, {7, 7},
+    {3, 8}, {5, 8}, {7, 8},
+    {4, 9}, {6, 9},
+};
 
 // function declaration
+
+// relate SDL
+void render_pieces(SDL_Renderer *renderer, mapInfo *map);
+void render_lands(SDL_Renderer *renderer, mapInfo *map);
+void render_roads(SDL_Renderer *renderer, mapInfo *map);
+void render_map(SDL_Renderer *renderer, mapInfo *map);
 
 // some tool
 void randomize(void **array, size_t n, size_t size);
 int list_head_length(struct list_head *head);
 struct list_head *list_head_at(struct list_head *head, int index);
-
 void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***players, struct list_head **devcards);
 player **init_player();
 void init_map(piece **pieces, landbetween **lands, road **roads);
@@ -172,7 +194,7 @@ int build_building(landbetween **lands, player **players, int player_id, point p
 void take_initial_resource(landbetween **lands, player **players, int player_id, int dice);
 void player_round(const int player_id, landbetween **lands, player **players, piece **pieces, road **roads);
 int roll_dice();
-int take_resource(int DP, piece **pieces, player **players, landbetween **lands, int *resource, int first_id);
+int take_resource(int DP, mapInfo *map, int *resource, int first_id);
 void robber_situation();
 int discard_resource(player **players, int player_id);
 void resource_to_discard(player *player, int **decide_resource);
@@ -188,6 +210,9 @@ void knight_action();
 void monopoly_action( player **players, int id );
 void free_road_building_action();
 int32_t year_of_plenty_action( player **players, int id );
+bool is_in_three_pieces_lands_pos(const int x, const int y);
+bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
+bool is_land_connect_other_building(mapInfo *map, const int x, const int y);
 
 void free_player(player **players);
 void free_piece(piece **pieces);
@@ -195,6 +220,195 @@ void free_landbetween(landbetween **lands);
 void free_road(road **roads);
 void free_devcard(struct list_head *devcards);
 
+// SDL implement
+void render_pieces(SDL_Renderer *renderer, mapInfo *map){
+    //set background color
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
+
+    piece **pieces = map->pieces;
+
+    for(int i = 0; i < PIECE_NUM; i++){
+        int x = pieces[i]->p.x;
+        int y = pieces[i]->p.y;
+        x *= 2;
+        y = y + y / 2 - 1;
+        x *= 20;
+        y *= 20; 
+
+        SDL_Surface *piece_surface = NULL;
+        if(pieces[i]->eco_type == HILL)
+            piece_surface = IMG_Load("picture/hill.png");
+        else if(pieces[i]->eco_type == MOUNTAIN)
+            piece_surface = IMG_Load("picture/mountain.png");
+        else if(pieces[i]->eco_type == FIELD)
+            piece_surface = IMG_Load("picture/field.png");
+        else if(pieces[i]->eco_type == FOREST)
+            piece_surface = IMG_Load("picture/forest.png");
+        else if(pieces[i]->eco_type == PASTURE)
+            piece_surface = IMG_Load("picture/pasture.png");
+        else if(pieces[i]->eco_type == DESERT)
+            piece_surface = IMG_Load("picture/desert.png");
+        else
+            continue;
+        SDL_Texture *piece_texture = SDL_CreateTextureFromSurface(renderer, piece_surface);
+        SDL_Rect piece_rect = {x, y, PIECE_SIZE, PIECE_SIZE};
+        SDL_RenderCopy(renderer, piece_texture, NULL, &piece_rect);
+        SDL_DestroyTexture(piece_texture);
+        SDL_FreeSurface(piece_surface);
+
+        SDL_Surface *num_surface = NULL;
+        if(pieces[i]->number == 2)
+            num_surface = IMG_Load("picture/2.png");
+        else if(pieces[i]->number == 3)
+            num_surface = IMG_Load("picture/3.png");
+        else if(pieces[i]->number == 4)
+            num_surface = IMG_Load("picture/4.png");
+        else if(pieces[i]->number == 5)
+            num_surface = IMG_Load("picture/5.png");
+        else if(pieces[i]->number == 6)
+            num_surface = IMG_Load("picture/6.png");
+        else if(pieces[i]->number == 8)
+            num_surface = IMG_Load("picture/8.png");
+        else if(pieces[i]->number == 9)
+            num_surface = IMG_Load("picture/9.png");
+        else if(pieces[i]->number == 10)
+            num_surface = IMG_Load("picture/10.png");
+        else if(pieces[i]->number == 11)
+            num_surface = IMG_Load("picture/11.png");
+        else if(pieces[i]->number == 12)
+            num_surface = IMG_Load("picture/12.png");
+
+        SDL_Texture *num_texture = SDL_CreateTextureFromSurface(renderer, num_surface);
+        SDL_Rect num_rect = {x + NUM_OFFSET, y + NUM_OFFSET, NUM_SIZE, NUM_SIZE};
+        SDL_RenderCopy(renderer, num_texture, NULL, &num_rect);
+        SDL_DestroyTexture(num_texture);
+        SDL_FreeSurface(num_surface);   
+    }
+
+    SDL_RenderPresent(renderer);
+}
+
+void render_map(SDL_Renderer *renderer, mapInfo *map){
+     //set background color
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
+
+    piece **pieces = map->pieces;
+    landbetween **lands = map->lands;
+
+    for(int i = 0; i < PIECE_NUM; i++){
+        int x = pieces[i]->p.x;
+        int y = pieces[i]->p.y;
+        x *= 2;
+        y = y + y / 2 - 1;
+        x *= VIC_LEN;
+        y *= VIC_LEN; 
+
+        SDL_Surface *piece_surface = NULL;
+        if(pieces[i]->eco_type == HILL)
+            piece_surface = IMG_Load("picture/hill.png");
+        else if(pieces[i]->eco_type == MOUNTAIN)
+            piece_surface = IMG_Load("picture/mountain.png");
+        else if(pieces[i]->eco_type == FIELD)
+            piece_surface = IMG_Load("picture/field.png");
+        else if(pieces[i]->eco_type == FOREST)
+            piece_surface = IMG_Load("picture/forest.png");
+        else if(pieces[i]->eco_type == PASTURE)
+            piece_surface = IMG_Load("picture/pasture.png");
+        else if(pieces[i]->eco_type == DESERT)
+            piece_surface = IMG_Load("picture/desert.png");
+        else
+            continue;
+        SDL_Texture *piece_texture = SDL_CreateTextureFromSurface(renderer, piece_surface);
+        SDL_Rect piece_rect = {x, y, PIECE_SIZE, PIECE_SIZE};
+        SDL_RenderCopy(renderer, piece_texture, NULL, &piece_rect);
+        SDL_DestroyTexture(piece_texture);
+        SDL_FreeSurface(piece_surface);
+
+        SDL_Surface *num_surface = NULL;
+        if(pieces[i]->number == 2)
+            num_surface = IMG_Load("picture/2.png");
+        else if(pieces[i]->number == 3)
+            num_surface = IMG_Load("picture/3.png");
+        else if(pieces[i]->number == 4)
+            num_surface = IMG_Load("picture/4.png");
+        else if(pieces[i]->number == 5)
+            num_surface = IMG_Load("picture/5.png");
+        else if(pieces[i]->number == 6)
+            num_surface = IMG_Load("picture/6.png");
+        else if(pieces[i]->number == 8)
+            num_surface = IMG_Load("picture/8.png");
+        else if(pieces[i]->number == 9)
+            num_surface = IMG_Load("picture/9.png");
+        else if(pieces[i]->number == 10)
+            num_surface = IMG_Load("picture/10.png");
+        else if(pieces[i]->number == 11)
+            num_surface = IMG_Load("picture/11.png");
+        else if(pieces[i]->number == 12)
+            num_surface = IMG_Load("picture/12.png");
+
+        SDL_Texture *num_texture = SDL_CreateTextureFromSurface(renderer, num_surface);
+        SDL_Rect num_rect = {x + NUM_OFFSET, y + NUM_OFFSET, NUM_SIZE, NUM_SIZE};
+        SDL_RenderCopy(renderer, num_texture, NULL, &num_rect);
+        SDL_DestroyTexture(num_texture);
+        SDL_FreeSurface(num_surface);   
+    }
+
+    for(int i = 0; i < LAND_NUM; i++){
+        int x = lands[i]->p.x;
+        int y = lands[i]->p.y;
+        x *= 2;
+        y = y + y / 2;
+        x *= VIC_LEN;
+        y *= VIC_LEN; 
+
+        SDL_Surface *land_surface = NULL;
+        if(lands[i]->has_building){
+            int own = lands[i]->owner;
+            int b= lands[i]->building;
+
+            if(own == PLAYER1){
+                if(b == SETTLEMENT)
+                    land_surface = IMG_Load("picture/red_settlement.png");
+                else if(b == CITY)
+                    land_surface = IMG_Load("picture/red_city.png");
+            }
+            else if(own == PLAYER2){
+                if(b == SETTLEMENT)
+                    land_surface = IMG_Load("picture/white_settlement.png");
+                else if(b == CITY)
+                    land_surface = IMG_Load("picture/whtie_city.png");
+            }
+            else if(own == PLAYER3){
+                if(b == SETTLEMENT)
+                    land_surface = IMG_Load("picture/orange_settlement.png");
+                else if(b == CITY)
+                    land_surface = IMG_Load("picture/orange_city.png");
+            }
+            else if(own == PLAYER4){
+                if(b == SETTLEMENT)
+                    land_surface = IMG_Load("picture/blue_settlement.png");
+                else if(b == CITY)
+                    land_surface = IMG_Load("picture/blue_city.png");
+            }
+        }
+
+        x = x + PIECE_SIZE / 2 - LAND_SIZE / 2;
+        y = y + PIECE_SIZE / 2 - LAND_SIZE / 2;
+        SDL_Texture *land_texture = SDL_CreateTextureFromSurface(renderer, land_surface);
+        // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+        SDL_Rect land_rect = {x, y, LAND_SIZE, LAND_SIZE};
+        SDL_RenderCopy(renderer, land_texture, NULL, &land_rect);
+        // SDL_RenderFillRect(renderer, &land_rect);
+        SDL_DestroyTexture(land_texture);
+        SDL_FreeSurface(land_surface);
+    }
+
+    SDL_RenderPresent(renderer);
+}
+
+// return the length of a list, excluding the head
 int list_head_length(struct list_head *head){
     int length = 0;
     struct list_head *pos = head->next;
@@ -205,6 +419,7 @@ int list_head_length(struct list_head *head){
     return length;
 }
 
+// return the pointer of the node at th position, excluding the head
 struct list_head *list_head_at(struct list_head *head, int th){
     if(th <= 0 || th > list_head_length(head))
         return NULL;
@@ -240,10 +455,6 @@ void init_game(piece ***pieces, landbetween ***lands, road ***roads, player ***p
     *lands = init_landbetween();
     *roads = init_road();   
     *devcards = init_devcard();
-    
-    // build initial building
-
-    // take initial resource
 }
 
 player **init_player(){
@@ -557,7 +768,10 @@ int roll_dice(){
     return rand() % 6 + rand() % 6 + 2;
 }
 
-int take_resource(int DP, piece **pieces, player **players, landbetween **lands, int *resource, int first_id){
+int take_resource(int DP, mapInfo *map, int *resource, int first_id){
+    player **players = map->players;
+    piece **pieces = map->pieces;
+    landbetween **lands = map->lands;
     int turn[4] = {0};
     for(int i = 0; i < 4; i++){
         int idx = (player_index(first_id, players) + i) % 4;
@@ -572,7 +786,7 @@ int take_resource(int DP, piece **pieces, player **players, landbetween **lands,
                 const int x = pieces[i]->p.x;
                 const int y = pieces[i]->p.y;
                 // for each land between around the piece
-                POINT_AROUND_PIECE(pos, x, y);
+                POINT_AROUND_PIECE(pos, x, y, 1);
                 for(int j = 0; j < 6; j++){
                     // if the land between has building && the owner is the player
                     if(lands[land_index(pos[j].x, pos[j].y, lands)]->has_building && lands[land_index(pos[j].x, pos[j].y, lands)]->owner == turn[k]){
@@ -593,6 +807,43 @@ int take_resource(int DP, piece **pieces, player **players, landbetween **lands,
     }
     
     return 1;
+}
+
+bool is_in_three_pieces_lands_pos(const int x, const int y){
+    for(int i = 0; i < (int)ARR_NUM(three_pieces_lands_pos, point); i++){
+        if(three_pieces_lands_pos[i].x == x && three_pieces_lands_pos[i].y == y)
+            return true;
+    }
+    return false;
+}
+
+bool is_land_occupied(mapInfo *map, const int x, const int y, const int id){
+    landbetween **lands = map->lands;
+    for(int i = 0; i < LAND_NUM; i++){
+        if(lands[i]->p.x == x && lands[i]->p.y == y && lands[i]->has_building && lands[i]->owner != id)
+            return true;
+    }
+    return false;
+}
+
+bool is_land_connect_other_building(mapInfo *map, const int x, const int y){
+    landbetween **lands = map->lands;
+    road **roads = map->roads;
+    for(int i = 0; i < ROAD_NUM; i++){
+        if(x == roads[i]->start.x && y == roads[i]->start.y){
+            for(int j = 0; j < LAND_NUM; j++){
+                if(lands[j]->p.x == roads[i]->end.x && lands[j]->p.y == roads[i]->end.y && lands[j]->has_building)
+                    return true;
+            }
+        }
+        else if(x == roads[i]->end.x && y == roads[i]->end.y){
+            for(int j = 0; j < LAND_NUM; j++){
+                if(lands[j]->p.x == roads[i]->start.x && lands[j]->p.y == roads[i]->start.y && lands[j]->has_building)
+                    return true;
+            }
+        }
+    }
+    return false;
 }
 
 void free_player(player **players){
