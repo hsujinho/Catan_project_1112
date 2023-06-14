@@ -372,7 +372,7 @@ landbetween *ai_choose_building(mapInfo *map, const int ab[LAND_NUM]){
         if(getsource[2] * getsource[3] * getsource[4] == 1) gra += 6;
         if(getsource[0] * getsource[1] >= 1) gra += 3;
 
-        if(getsource[0]+getsource[1]+getsource[2]+getsource[3]+getsource[4] < 3 && random()%100 < 90) continue;
+        if((!is_in_three_pieces_lands_pos(map->lands[n]->p.x, map->lands[n]->p.y)) && random()%100 < 60) continue;
 
         for(int i = 0; i < 3; i++){
             if(point[i] == 7) gra -= 12;
@@ -404,6 +404,7 @@ int start_build(mapInfo *map, const int player_id){
                 if(map->lands[get_land_p(map, map->roads[j]->start)]->has_building) ability[i] = 0;
             }
         }
+        if(!is_in_three_pieces_lands_pos(map->lands[i]->p.x, map->lands[i]->p.y)) ability[i] = 0;
     }
 
     int x = 0, y = 0;
