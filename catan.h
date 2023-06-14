@@ -295,7 +295,7 @@ void render_pieces(SDL_Renderer *renderer, mapInfo *map){
 }
 
 void render_map(SDL_Renderer *renderer, mapInfo *map){
-     //set background color
+    //set background color
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
@@ -361,6 +361,95 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
         SDL_FreeSurface(num_surface);   
     }
 
+    for(int i = 0; i < ROAD_NUM; i++){
+        int x1 = map->roads[i]->start.x;
+        int y1 = map->roads[i]->start.y;
+        int x2 = map->roads[i]->end.x;
+        int y2 = map->roads[i]->end.y;
+        int x = (x1 + x2) / 2;
+        int y = (y1 + y2) / 2;
+        x *= PIECE_SIZE / 2;
+        y *= PIECE_SIZE / 2;
+
+        SDL_Surface *road_surface = NULL;
+        if(roads[i]->dir == LD){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/LD_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/LD_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/LD_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/LD_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/LD_blue.png");
+
+            x = roads[i]->start.x;
+            x = x * 2 * VIC_LEN;
+            y = roads[i]->start.y;
+            y = y + y / 2;
+            y = y * VIC_LEN;
+            y = y + PIECE_SIZE / 2 + PIECE_SIZE / 20;
+
+            SDL_Texture *road_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
+            SDL_Rect road_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+            SDL_RenderCopy(renderer, road_texture, NULL, &road_rect);
+            SDL_DestroyTexture(road_texture);
+        }
+        else if(roads[i]->dir == RD){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/RD_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/RD_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/RD_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/RD_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/RD_blue.png");
+
+            x = roads[i]->start.x;
+            x = x * 2 * VIC_LEN;
+            x += PIECE_SIZE / 2;
+            y = roads[i]->start.y;
+            y = y + y / 2;
+            y = y * VIC_LEN;
+            y = y + PIECE_SIZE / 2 - PIECE_SIZE / 40;
+
+            SDL_Texture *road_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
+            SDL_Rect road_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+            SDL_RenderCopy(renderer, road_texture, NULL, &road_rect);
+            SDL_DestroyTexture(road_texture);
+        }
+        else if(roads[i]->dir == D){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/D_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/D_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/D_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/D_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/D_blue.png");
+
+            x = roads[i]->start.x;
+            x = x * 2 * VIC_LEN;
+            x += PIECE_SIZE / 4;
+            y = roads[i]->start.y;
+            y = y + y / 2;
+            y = y * VIC_LEN;
+            y = y + PIECE_SIZE / 2 + PIECE_SIZE / 20;
+
+
+            SDL_Texture *land_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
+            SDL_Rect land_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+            SDL_RenderCopy(renderer, land_texture, NULL, &land_rect);
+            SDL_DestroyTexture(land_texture);
+        }
+        SDL_FreeSurface(road_surface);
+    }
+
     for(int i = 0; i < LAND_NUM; i++){
         int x = lands[i]->p.x;
         int y = lands[i]->p.y;
@@ -408,57 +497,6 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
         SDL_DestroyTexture(land_texture);
         SDL_FreeSurface(land_surface);
     }   
-
-    for(int i = 0; i < ROAD_NUM; i++){
-        int x1 = map->roads[i]->start.x;
-        int y1 = map->roads[i]->start.y;
-        int x2 = map->roads[i]->end.x;
-        int y2 = map->roads[i]->end.y;
-
-        SDL_Surface *road_surface = NULL;
-        if(roads[i]->dir = LD){
-            if(roads[i]->owner == NOBODY)
-                road_surface = IMG_Load("picture/LD_black.png");
-            else if(roads[i]->owner == PLAYER1)
-                road_surface = IMG_Load("picture/LD_red.png");
-            else if(roads[i]->owner == PLAYER2)
-                road_surface = IMG_Load("picture/LD_white.png");
-            else if(roads[i]->owner == PLAYER3)
-                road_surface = IMG_Load("picture/LD_orange.png");
-            else if(roads[i]->owner == PLAYER4)
-                road_surface = IMG_Load("picture/LD_blue.png");
-        }
-        else if(roads[i]->dir = RD){
-            if(roads[i]->owner == NOBODY)
-                road_surface = IMG_Load("picture/RD_black.png");
-            else if(roads[i]->owner == PLAYER1)
-                road_surface = IMG_Load("picture/RD_red.png");
-            else if(roads[i]->owner == PLAYER2)
-                road_surface = IMG_Load("picture/RD_white.png");
-            else if(roads[i]->owner == PLAYER3)
-                road_surface = IMG_Load("picture/RD_orange.png");
-            else if(roads[i]->owner == PLAYER4)
-                road_surface = IMG_Load("picture/RD_blue.png");
-        }
-        else if(roads[i]->dir = D){
-            if(roads[i]->owner == NOBODY)
-                road_surface = IMG_Load("picture/D_black.png");
-            else if(roads[i]->owner == PLAYER1)
-                road_surface = IMG_Load("picture/D_red.png");
-            else if(roads[i]->owner == PLAYER2)
-                road_surface = IMG_Load("picture/D_white.png");
-            else if(roads[i]->owner == PLAYER3)
-                road_surface = IMG_Load("picture/D_orange.png");
-            else if(roads[i]->owner == PLAYER4)
-                road_surface = IMG_Load("picture/D_blue.png");
-        }
-
-        SDL_Texture *land_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
-        // SDL_Rect land_rect = {x, y, LAND_SIZE, LAND_SIZE};
-        // SDL_RenderCopy(renderer, land_texture, NULL, &land_rect);
-        SDL_DestroyTexture(land_texture);
-        SDL_FreeSurface(road_surface);
-    }
 
     SDL_RenderPresent(renderer);
 }

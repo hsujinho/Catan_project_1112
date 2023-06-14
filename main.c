@@ -33,7 +33,7 @@ void print_simple_map(){
 }
 
 int main(){ 
-    printf("Welcome to Catan!\n");
+    // printf("Welcome to Catan!\n");
 
     //declare variables
     player **players = NULL;
@@ -55,6 +55,7 @@ int main(){
     IMG_Init(IMG_INIT_PNG);
     SDL_Window *window = SDL_CreateWindow("Catan", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
     //render map
     render_map(renderer, map);
 
