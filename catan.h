@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include <limits.h>
@@ -23,7 +24,7 @@
 #define NUMBER_PIXEL 35
 
 #define ARR_NUM(arr, type) (sizeof(arr) / sizeof(type))
-#define POINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-d}, {x-d, y}, {x+d, y}, {x-d, y+d}, {x+d, y+d}, {x, y+d}}
+#define POINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-2*d}, {x-d, y}, {x+d, y}, {x-d, y-d}, {x+d, y-d}, {x, y+d}}
 #define EPOINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-2*d}, {x-2*d, y-d}, {x-2*d, y+d}, {x, y+2*d}, {x+2*d, y+d}, {x+2*d, y-d}}
 
 // randomize times
@@ -891,13 +892,15 @@ int take_resource(int DP, mapInfo *map, int *resource, int first_id){
     piece **pieces = map->pieces;
     landbetween **lands = map->lands;
     int turn[4] = {0};
+    int playIdx = player_index(first_id, players);
+
     for(int i = 0; i < 4; i++){
-        int idx = (player_index(first_id, players) + i) % 4;
+        int idx = (playIdx + i) % 4;
         turn[i] = players[idx]->id;
     }
 
     // for each player in order
-    for(int k = 0; k < 4; k++){
+    for(int k = 0; k < PLAYER_NUM; k++){
         // for each piece with same dice point && doesn't have robber
         for(int i = 0; i < PIECE_NUM; i++){
             if(DP == pieces[i]->number && pieces[i]->robberFlag == false){

@@ -35,6 +35,7 @@ void print_simple_map(){
 
 int main(){ 
     printf("Welcome to Catan!\n");
+    print_simple_map();
 
     //declare variables
     player **players = NULL;
@@ -43,7 +44,6 @@ int main(){
     road **roads = NULL;
     struct list_head *devcards = NULL;
     mapInfo *map = malloc(sizeof(mapInfo));
-    int first_id = map->players[0]->id;
     //initialize variables
     init_game(&pieces, &landbetweens, &roads, &players, &devcards);
     map->players = players;
@@ -73,7 +73,6 @@ int main(){
 
         if(!isBuildInitalSettle){
             //setting initial building and take resources
-            
             int reverse_turn[4] = {0};
             //setting first settlement
             for(int i = 0; i < PLAYER_NUM; i++){
@@ -114,7 +113,6 @@ int main(){
                     //desire to add the function which can render where can build
                     render_map(renderer, map);
                     
-                    //TODO: build road
                     int cho_num = 0, cho;
                     point sta[3] = {{0, 0}, {0, 0}, {0, 0}}, end[3] = {{0, 0}, {0, 0}, {0, 0}};
                     for(int k = 0; k < ROAD_NUM; k++){
@@ -189,7 +187,6 @@ int main(){
 
                             render_map(renderer, map);
 
-                            //TODO: take resources
                             for(int k = 0; k < PIECE_NUM; k++){
                                 POINT_AROUND_PIECE(around, pieces[k]->p.x, pieces[k]->p.y, 1);
                                 for(int l = 0; l < 6; l++){
@@ -201,7 +198,6 @@ int main(){
                                 }
                             }
 
-                            //TODO: build road
                             int cho_num = 0, cho;
                             point sta[3] = {{0, 0}, {0, 0}, {0, 0}}, end[3] = {{0, 0}, {0, 0}, {0, 0}};
                             for(int k = 0; k < ROAD_NUM; k++){
@@ -246,11 +242,12 @@ int main(){
         }
 
         for(int i = 0; i < PLAYER_NUM; i++){
+            sleep(2);   
             int id = players[i]->id;
             //roll dice and take resources
             int dice = roll_dice();
-            // printf("Player %d rolls %d points\n", id, dice);
-            // take_resource(dice, map, resource, first_id);
+            printf("Player %d rolls %d points\n", id, dice);
+            take_resource(dice, map, resource, id);
             if(id == 1){
                 
             }
