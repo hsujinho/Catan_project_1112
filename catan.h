@@ -385,11 +385,16 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
             y = roads[i]->start.y;
             y = y + y / 2;
             y = y * VIC_LEN;
-            y = y + PIECE_SIZE / 2 + PIECE_SIZE / 20;
+            y = y + PIECE_SIZE / 2 - PIECE_SIZE / 40;
+
+            double angle = 45 - 26.5650511770;
+            SDL_Point center = {PIECE_SIZE / 2, 0};            
+            SDL_Rect dstRect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
 
             SDL_Texture *road_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
-            SDL_Rect road_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
-            SDL_RenderCopy(renderer, road_texture, NULL, &road_rect);
+            // SDL_Rect road_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+            // SDL_RenderCopy(renderer, road_texture, NULL, &road_rect);
+            SDL_RenderCopyEx(renderer, road_texture, NULL, &dstRect, angle, &center, SDL_FLIP_NONE);
             SDL_DestroyTexture(road_texture);
         }
         else if(roads[i]->dir == RD){
@@ -406,15 +411,20 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
 
             x = roads[i]->start.x;
             x = x * 2 * VIC_LEN;
-            x += PIECE_SIZE / 2;
+            x += PIECE_SIZE / 2 + PIECE_SIZE / 10 + PIECE_SIZE / 40;
             y = roads[i]->start.y;
             y = y + y / 2;
             y = y * VIC_LEN;
             y = y + PIECE_SIZE / 2 - PIECE_SIZE / 40;
 
+            double angle = -1 * (45 - 26.5650511770);
+            SDL_Point center = {0, PIECE_SIZE / 2};            
+            SDL_Rect dstRect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+
             SDL_Texture *road_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
-            SDL_Rect road_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
-            SDL_RenderCopy(renderer, road_texture, NULL, &road_rect);
+            // SDL_Rect road_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+            // SDL_RenderCopy(renderer, road_texture, NULL, &road_rect);
+            SDL_RenderCopyEx(renderer, road_texture, NULL, &dstRect, angle, &center, SDL_FLIP_NONE);
             SDL_DestroyTexture(road_texture);
         }
         else if(roads[i]->dir == D){
