@@ -1181,7 +1181,8 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
  * @players:	all players
  * @id:		player who use monopoly_action
  * AI version: done
- * Warning: Lack of DevCard modification ( used, remove from hand )
+ * Warning: Where does the used devCard go -> free
+ * [ Compile: not yet, Run: not yet ]
  */
 void monopoly_action( mapInfo *info, int id )
 {
@@ -1213,6 +1214,22 @@ void monopoly_action( mapInfo *info, int id )
 	info->players[i]->resource[ get_choice ] = 0;
     }
 
+    /* Devcard modification */
+    monoply->number_of_dev_card -= 1;
+    struct list_head *pos = info->players[ id - 1 ]->devcard_list->next;
+    while( pos )
+    {
+	devcard card = list_entry( pos, devcard, node );
+	if( card->type == MONOPLY )
+	{
+	    list_del( pos ); // Where to go?
+	    free( pos );
+	    card->used = true;
+	    break;
+	}
+	else	    pos = pos->next;
+    }
+
     return;
 }
 
@@ -1221,7 +1238,8 @@ void monopoly_action( mapInfo *info, int id )
  * @players:	all players
  * @id:		player who use the year_of_plenty_action card
  * AI version: done
- * Warning: Lack of DevCard modification ( used, remove from hand )
+ * Warning: Where does the used devCard go -> free
+ * [ Compile: not yet, Run: not yet ]
  * */
 int32_t year_of_plenty_action( mapInfo *info, int id )
 {
@@ -1272,6 +1290,22 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	resource[ get_choice2 ] -= 1;
 	info->players[ id - 1 ]->resource[ get_choice1 ] += 1;
 	info->players[ id - 1 ]->resource[ get_choice2 ] += 1;
+    }
+
+    /* Devcard modification */
+    info->players[ id - 1 ]->number_of_dev_card -= 1;
+    struct list_head *pos = info->players[ id - 1 ]->devcard_list->next;
+    while( pos )
+    {
+	devcard card = list_entry( pos, devcard, node );
+	if( card->type == YEAR_OF_PLENTY )
+	{
+	    list_del( pos ); // Where to go?
+	    free( pos );
+	    card->used = true;
+	    break;
+	}
+	else	    pos = pos->next;
     }
 
     return 0;
