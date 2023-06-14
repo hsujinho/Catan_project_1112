@@ -974,35 +974,36 @@ void trade_action( mapInfo *info, int32_t id )
 
 			printf("5. Bank\n");
 			printf("6. Quit\n");
+			printf("Your choice: ");
     
     int32_t choice = 0;
 
     if( id == 1 ) // Player version
     {
-	if( scanf("Your choice: %d", &choice ) != 1 )
+	if( scanf("%d", &choice ) != 1 )
 	{
 	    printf(RED"Please enter one integers\n"WHITE);
 	    while(getchar() != '\n');
 	}
-	    if( choice < 1 || choice > 6 || choice == id )
-	    {
-		printf("Your choice must be 1 - 6 and not the list index not on the list\n");
-		return;
-	    }
+        if( choice < 1 || choice > 6 || choice == id )
+        {
+       	    printf("Your choice must be 1 - 6 and not the list index not on the list\n");
+	    return;
+        }
+    
+        if( choice == 6 )	return;
+        if( choice == 5 )
+        {
+	    trade_with_bank( info->players[ player_index( id, info->players ) ], info->lands );
+        }
+        else
+        {
+	    trade_with_player( info->players[ player_index( choice, info->players ) ], info->players[ player_index( id, info->players ) ] );
+        }
     }
     else // AI version
     {
 	choice = 6; // Default: no trade
-    }
-
-    if( choice == 6 )	return;
-    if( choice == 5 )
-    {
-	trade_with_bank( info->players[ player_index( id, info->players ) ], info->lands );
-    }
-    else
-    {
-	trade_with_player( info->players[ player_index( choice, info->players ) ], info->players[ player_index( id, info->players ) ] );
     }
 
     return;
@@ -1053,7 +1054,7 @@ void trade_with_bank( player *player_A, landbetween **maps )
 
     int32_t resources_discard[5]  = {0};
     int32_t resources_get[5] = {0};
-    resources_discard[ discard_choice ]  = credit;
+    resources_discard[ discard_choice ] = credit;
     resources_get[ get_choice ] = 1;
 
     if( is_resource_enough( player_A->resource, resources_discard ) && is_resource_enough( resource, resources_get ) )
