@@ -207,9 +207,9 @@ void trade_with_bank( player *player_A, landbetween **maps );
 void trade_with_player( player *candidate, player *player_A );
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice );
 void knight_action();
-void monopoly_action( player **players, int id );
+void monopoly_action( mapInfo *info, int id );
 void free_road_building_action();
-int32_t year_of_plenty_action( player **players, int id );
+int32_t year_of_plenty_action( mapInfo *info, int id );
 bool is_in_three_pieces_lands_pos(const int x, const int y);
 bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
 bool is_land_connect_other_building(mapInfo *map, const int x, const int y);
@@ -977,7 +977,11 @@ void trade_action( mapInfo *info, int32_t id )
 
     if( id == 1 ) // Player version
     {
-	scanf("Your choice: %d", &choice );
+	if( scanf("Your choice: %d", &choice ) != 1 )
+	{
+	    printf(RED"Please enter one integers\n"WHITE);
+	    while(getchar() != '\n');
+	}
 	    if( choice < 1 || choice > 6 )
 	    {
 		printf("Your choice must be 1 - 6\n");
@@ -1036,7 +1040,11 @@ void trade_with_bank( player *player_A, landbetween **maps )
     /* Get input */
     int32_t get_choice = 0;
     printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-    scanf("%d", &get_choice );
+    if( scanf("%d", &get_choice ) != 1 )
+    {
+	printf(RED"Please enter one integers\n"WHITE);
+	while(getchar() != '\n');
+    }
 	if( get_choice < 0 || get_choice > 4 )
 	{
 	    printf("You can only type 0 - 4!\n");
@@ -1045,7 +1053,11 @@ void trade_with_bank( player *player_A, landbetween **maps )
 
     int32_t discard_choice = 0;
     printf("What do you want to discard ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-    scanf("%d", &discard_choice );
+    if( scanf("%d", &discard_choice ) != 1 )
+    {
+	printf(RED"Please enter one integers\n"WHITE);
+	while(getchar() != '\n');
+    }
 	if( discard_choice < 0 || discard_choice > 4 )
 	{
 	    printf("You can only type 0 - 4!\n");
@@ -1096,16 +1108,28 @@ void trade_with_player( player *candidate, player *player_A )
     // Resources
     int32_t resource_discard[5]  = {0};
     printf("What do you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
-    scanf("%d %d %d %d %d", &resource_discard[0], &resource_discard[1], &resource_discard[2], &resource_discard[3], &resource_discard[4] );
+    if( scanf("%d %d %d %d %d", &resource_discard[0], &resource_discard[1], &resource_discard[2], &resource_discard[3], &resource_discard[4] ) != 5 )
+    {
+	printf(RED"Please enter five integers\n"WHITE);
+	while(getchar() != '\n');
+    }
 
     int32_t resource_get[5]  = {0};
     printf("What do you want to get ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
-    scanf("%d %d %d %d %d", &resource_get[0], &resource_get[1], &resource_get[2], &resource_get[3], &resource_get[4] );
+    if( scanf("%d %d %d %d %d", &resource_get[0], &resource_get[1], &resource_get[2], &resource_get[3], &resource_get[4] ) != 5 )
+    {
+	printf(RED"Please enter five integers\n"WHITE);
+	while(getchar() != '\n');
+    }
 
     // candidate decision
     int32_t candidate_decision = 0;
     printf("@Player%d, do you want to trade with player%d ( 1 for Yes, 2 for No ): ", candidate->id, player_A->id );
-    scanf("%d", &candidate_decision );
+    if( scanf("%d", &candidate_decision ) != 1 )
+    {
+	printf(RED"Please enter one integers\n"WHITE);
+	while(getchar() != '\n');
+    }
 	if( candidate_decision != 1 && candidate_decision != 2 )
 	{
 	    printf("You can only type 1 or 2!\n");
@@ -1190,7 +1214,12 @@ void monopoly_action( mapInfo *info, int id )
     if( id == 1 ) // Player version
     {
 	printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-	scanf("%d", &get_choice );
+	if( scanf("%d", &get_choice ) != 1 )
+	{
+	    printf(RED"Please enter one integers\n"WHITE);
+	    while(getchar() != '\n');
+	}
+
 	    if( get_choice < 0 || get_choice > 4 )
 	    {
 		printf("You can only type 0 - 4!\n");
@@ -1219,8 +1248,8 @@ void monopoly_action( mapInfo *info, int id )
     struct list_head *pos = info->players[ id - 1 ]->devcard_list->next;
     while( pos )
     {
-	devcard card = list_entry( pos, devcard, node );
-	if( card->type == MONOPLY )
+	devcard *card = list_entry( pos, devcard, node );
+	if( card->type == MONOPOLY )
 	{
 	    list_del( pos ); // Where to go?
 	    free( pos );
@@ -1248,7 +1277,11 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     if( id == 1 ) // Player version
     {
 	printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-	scanf("%d %d", &get_choice1, &get_choice2 );
+	if( scanf("%d %d", &get_choice1, &get_choice2 ) != 2 )
+	{
+	    printf(RED"Please enter two integers\n"WHITE);
+	    while(getchar() != '\n');
+	}
 	    if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
 	    {
 		printf("You can only type 0 - 4!\n");
@@ -1297,7 +1330,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     struct list_head *pos = info->players[ id - 1 ]->devcard_list->next;
     while( pos )
     {
-	devcard card = list_entry( pos, devcard, node );
+	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == YEAR_OF_PLENTY )
 	{
 	    list_del( pos ); // Where to go?
