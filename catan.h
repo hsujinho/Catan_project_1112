@@ -960,6 +960,7 @@ bool is_resource_enough( int32_t *standard, int32_t *input )
  * trade_action - selection list for trade action
  * @info:   access of other game information
  * @id:	    player who is trading
+ * AI version: done
  */
 void trade_action( mapInfo *info, int32_t id )
 {
@@ -970,14 +971,25 @@ void trade_action( mapInfo *info, int32_t id )
     if( id != 3 )	printf("3. Player3\n");
     if( id != 4 )	printf("4. Player4\n");
 			printf("5. Bank\n");
+			printf("6. Quit\n");
+    
     int32_t choice = 0;
-    scanf("Your choice: %d", &choice );
-	if( choice < 1 || choice > 5 )
-	{
-	    printf("Your choice must be 1 - 5\n");
-	    return;
-	}
 
+    if( id == 1 ) // Player version
+    {
+	scanf("Your choice: %d", &choice );
+	    if( choice < 1 || choice > 6 )
+	    {
+		printf("Your choice must be 1 - 6\n");
+		return;
+	    }
+    }
+    else // AI version
+    {
+	choice = 6; // Default: no trade
+    }
+
+    if( choice == 6 )	return;
     if( choice == 5 )
     {
 	if( id == 1 )	trade_with_bank( info->players[ PLAYER1 ], info->lands );
@@ -1017,6 +1029,7 @@ void trade_action( mapInfo *info, int32_t id )
  * trade_with_bank - simply trade action with bank
  * @player_A:	player who is trading
  * @maps:	for trade_with_port() needed
+ * AI version: Not exist
  */
 void trade_with_bank( player *player_A, landbetween **maps )
 {
@@ -1076,6 +1089,7 @@ void trade_with_bank( player *player_A, landbetween **maps )
  * trade_with_player - trade action from player_A to candidate
  * @candidate:	player who plaayer_A wants to trade with
  * @player_A:	player who is trading
+ * AI version: Not exist
  */
 void trade_with_player( player *candidate, player *player_A )
 {
@@ -1140,6 +1154,7 @@ void trade_with_player( player *candidate, player *player_A )
  * @player_A:	player who trade with the bank
  * @maps:	Access the port information
  * @get_choice:	resource that player_A wants to get
+ * AI version: not related
  * Note: this function is embeded in trade_with_bank()
  */
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice )
@@ -1165,26 +1180,37 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
  * monopoly_action - Take one certain resource from all the other players
  * @players:	all players
  * @id:		player who use monopoly_action
+ * AI version: done
  * Warning: Lack of DevCard modification ( used, remove from hand )
  */
-void monopoly_action( player **players, int id )
+void monopoly_action( mapInfo *info, int id )
 {
-    int32_t get_choice = 0;
-    printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-    scanf("%d", &get_choice );
-	if( get_choice < 0 || get_choice > 4 )
+    int32_t get_choice = 30;
+    if( id == 1 ) // Player version
+    {
+	printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+	scanf("%d", &get_choice );
+	    if( get_choice < 0 || get_choice > 4 )
+	    {
+		printf("You can only type 0 - 4!\n");
+		return;
+	    }
+    }
+    else // AI version: pick the resource with least number
+    {
+	for( int32_t i = 0; i < 5; i++ )
 	{
-	    printf("You can only type 0 - 4!\n");
-	    return;
+	    if( info->players[ id - 1 ]->resource[i] < get_choice )	get_choice = i;
 	}
+    }
 
-    player *monoply = players[ id - 1 ];
+    player *monoply = info->players[ id - 1 ];
     for( int32_t i = 0; i < PLAYER_NUM; i++ )
     {
 	if( i + 1 == id )   continue;
 
-	monoply->resource[ get_choice ] += players[i]->resource[ get_choice ];
-	players[i]->resource[ get_choice ] = 0;
+	monoply->resource[ get_choice ] += info->players[i]->resource[ get_choice ];
+	info->players[i]->resource[ get_choice ] = 0;
     }
 
     return;
@@ -1194,19 +1220,42 @@ void monopoly_action( player **players, int id )
  * year_of_plenty_action - get 2 resource from the bank
  * @players:	all players
  * @id:		player who use the year_of_plenty_action card
+ * AI version: done
  * Warning: Lack of DevCard modification ( used, remove from hand )
  * */
-int32_t year_of_plenty_action( player **players, int id )
+int32_t year_of_plenty_action( mapInfo *info, int id )
 {
-    int32_t get_choice1 = 0;
-    int32_t get_choice2 = 0;
-    printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-    scanf("%d %d", &get_choice1, &get_choice2 );
-	if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
+    int32_t get_choice1 = 30;
+    int32_t get_choice2 = 30;
+    if( id == 1 ) // Player version
+    {
+	printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+	scanf("%d %d", &get_choice1, &get_choice2 );
+	    if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
+	    {
+		printf("You can only type 0 - 4!\n");
+		return -1;
+	    }
+    }
+    else // AI version: pick 2 least resources with least number
+    {
+	for( int32_t i = 0; i < 5; i++ )
 	{
-	    printf("You can only type 0 - 4!\n");
-	    return -1;
+	    if( info->players[ id - 1 ]->resource[i] < get_choice1 && info->players[ id - 1 ]->resource[i] < get_choice2 )
+	    {
+		get_choice2 = get_choice1;
+		get_choice1 = info->players[ id - 1 ]->resource[i];
+	    }
+	    else if( info->players[ id - 1 ]->resource[i] > get_choice1 && info->players[ id - 1 ]->resource[i] < get_choice2 )
+	    {
+		get_choice2 = info->players[ id - 1 ]->resource[i];
+	    }
+	    else if( info->players[ id - 1 ]->resource[i] > get_choice1 && info->players[ id - 1 ]->resource[i] > get_choice2 )
+	    {
+		continue;
+	    }
 	}
+    }
 
     int32_t get[5] = {0};
     get[ get_choice1 ] = 1;
@@ -1221,8 +1270,8 @@ int32_t year_of_plenty_action( player **players, int id )
     {
 	resource[ get_choice1 ] -= 1;
 	resource[ get_choice2 ] -= 1;
-	players[ id - 1 ]->resource[ get_choice1 ] += 1;
-	players[ id - 1 ]->resource[ get_choice2 ] += 1;
+	info->players[ id - 1 ]->resource[ get_choice1 ] += 1;
+	info->players[ id - 1 ]->resource[ get_choice2 ] += 1;
     }
 
     return 0;
