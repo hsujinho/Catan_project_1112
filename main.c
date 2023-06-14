@@ -50,6 +50,7 @@ int main(){
     map->pieces = pieces;
     map->lands = landbetweens;
     map->roads = roads;
+    map->devcards = devcards;
 
     //init SDL
     SDL_Init(SDL_INIT_VIDEO);
@@ -107,6 +108,9 @@ int main(){
                             break;
                         }
                     }
+
+                    //start_build(map, id); <-- this function include build initial settlement, road, and take initial resource
+                    //desire to add the function which can render where can build
                     render_map(renderer, map);
                     
                     //TODO: build road
@@ -114,6 +118,8 @@ int main(){
                 }
                 else{
                     // TODO: let bot choose initial building
+                    start_build(map, id);
+                    render_map(renderer, map);
                 }
             }
 
@@ -200,6 +206,8 @@ int main(){
                         }
                         else{
                             // TODO: let bot choose initial building
+                            start_build(map, players[j]->id);
+                            render_map(renderer, map);
                         }
                     }
                 }

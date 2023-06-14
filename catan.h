@@ -380,7 +380,7 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
                 if(b == SETTLEMENT)
                     land_surface = IMG_Load("picture/white_settlement.png");
                 else if(b == CITY)
-                    land_surface = IMG_Load("picture/whtie_city.png");
+                    land_surface = IMG_Load("picture/white_city.png");
             }
             else if(own == PLAYER3){
                 if(b == SETTLEMENT)
@@ -516,6 +516,8 @@ player **init_player(){
         players[i]->VP = 0;
         for(int j = 0; j < 5; j++)
             players[i]->resource[j] = 0;
+        for(int j = 0; j < 3; j++)
+            players[i]->number_of_building[j] = 0;
         players[i]->number_of_knights = 0;
         players[i]->length_of_road = 0;
         players[i]->number_of_dev_card = 0;

@@ -1,8 +1,9 @@
 #pragma once
 #include "catan.h"
-
-#include"catan.h"
 #include "color.h"
+
+//all of the coordinate is transforms, from(1, 1) to (12, 3). (row colume)
+
 int get_road_2p(mapInfo *map, const point p1, const point p2);
 int get_land_p(mapInfo *map, const point point);
 int get_player_index(mapInfo *map, const int player_id);
@@ -79,12 +80,12 @@ void print_test_building(mapInfo *map, const int ab[LAND_NUM]){
                         PRINT_WHITE;
                         break;
                     case 3:
-                        PRINT_BLUE;
+                        PRINT_YELLOW;
                         printf("* ");
                         PRINT_WHITE;
                         break;
                     case 4:
-                        PRINT_YELLOW;
+                        PRINT_BLUE;
                         printf("* ");
                         PRINT_WHITE;
                         break;
@@ -127,12 +128,12 @@ void print_test_building(mapInfo *map, const int ab[LAND_NUM]){
                     PRINT_WHITE;
                     break;
                 case 3:
-                    PRINT_BLUE;
+                    PRINT_YELLOW;
                     printf("* ");
                     PRINT_WHITE;
                     break;
                 case 4:
-                    PRINT_YELLOW;
+                    PRINT_BLUE;
                     printf("* ");
                     PRINT_WHITE;
                     break;
@@ -174,12 +175,12 @@ void print_test_road(mapInfo *map, const int ab[ROAD_NUM]){
                     PRINT_WHITE;
                     break;
                 case 3:
-                    PRINT_BLUE;
+                    PRINT_YELLOW;
                     printf("* ");
                     PRINT_WHITE;
                     break;
                 case 4:
-                    PRINT_YELLOW;
+                    PRINT_BLUE;
                     printf("* ");
                     PRINT_WHITE;
                     break;
@@ -221,11 +222,11 @@ void print_test_road(mapInfo *map, const int ab[ROAD_NUM]){
                 case 2:
                     PRINT_GREEN;
                     break;
-                case 3:
-                    PRINT_BLUE;
+                case 3: 
+                    PRINT_YELLOW;
                     break;
                 case 4:
-                    PRINT_YELLOW;
+                    PRINT_BLUE;
                     break;
                 case 5:
                     PRINT_MAGENTA;
@@ -309,13 +310,13 @@ int take_initial_resource(mapInfo *map, const int player_id, const point p){
 }
 
 road *ai_choose_road(mapInfo *map, const int ab[ROAD_NUM]){
-    int n = 0, gra = 10, c = 0, gra_top = 15;
+    int n = 0, gra = 10, c = 0, gra_top = 50;
     do{
         gra = 10;
         n = random() % ROAD_NUM;
         if(!ab[n]) continue;
         c++;
-        if(c > 50){
+        if(c > 20000){
             gra_top --;
             c = 0;
         }
@@ -331,56 +332,53 @@ road *ai_choose_road(mapInfo *map, const int ab[ROAD_NUM]){
 }
 
 landbetween *ai_choose_building(mapInfo *map, const int ab[LAND_NUM]){
-    int n = 0, gra = 10, c = 0, gra_top = 15;
+    int n = 0, gra = 10, c = 0, gra_top = 30;
     do{
         gra = 10;
-        n = random() % LAND_NUM;
+        n = (random()+1) % LAND_NUM;
         if(!ab[n]) continue;
         c++;
-        if(c > 50){
+        if(c > 50000){
             gra_top --;
             c = 0;
         }
-
-        int top = map->lands[n]->p.x - 1, bot = map->lands[n]->p.y + 2, left = map->lands[n]->p.x - 1, right = map->lands[n]->p.x + 1;
-        if(top < 0) top=0;
-        if(bot >= Y_LONG) bot=Y_LONG-1;
-        if(left < 0) left=0;
-        if(right >= X_LONG) right=X_LONG-1;
 
         int getsource[5] = {0};
         int point[3] = {0};
         int count = 0;
 
-        for(int i = top; i <= bot; i++){
-            for(int j = left; j <= right; j++){
+        int top = map->lands[n]->p.y - 1, bot = map->lands[n]->p.y + 2, left = map->lands[n]->p.x - 1, right = map->lands[n]->p.x + 1;
+        if(top < 0) top = 0;
+        if(bot > Y_LONG) bot = Y_LONG;
+        if(left < 0) left = 0;
+        if(right > X_LONG) right = X_LONG;
+
+        for(int i = top; i < bot; i++){
+            for(int j = left; j < right; j++){
                 if(valid_point_mat[i][j] == TYPE_PIECE){
                     for(int k = 0; k < PIECE_NUM; k++){
                         if(map->pieces[k]->p.x == j && map->pieces[k]->p.y == i){
                             getsource[map->pieces[k]->eco_type] += 1;
                             point[count] = map->pieces[k]->number;
-                            count ++;
+                            count++;
                         }
                     }
                 }
             }
         }
 
-        for(int i = 0; i < 5; i++){
-            if(getsource[i] > 1) gra --;
-        }
-        if(getsource[3] + getsource[4] > 1) gra ++;
-        if(getsource[3] > 1) gra += 2;
-        if(getsource[2] * getsource[3] * getsource[4] == 1) gra += 2;
-        if(getsource[0] * getsource[1] >= 1) gra ++;
+        if(getsource[3] + getsource[4] > 1) gra += 4;
+        if(getsource[3] > 1) gra += 6;
+        if(getsource[2] * getsource[3] * getsource[4] == 1) gra += 6;
+        if(getsource[0] * getsource[1] >= 1) gra += 3;
+
+        if(getsource[0]+getsource[1]+getsource[2]+getsource[3]+getsource[4] < 3 && random()%100 < 90) continue;
 
         for(int i = 0; i < 3; i++){
-            if(point[i] == 7) gra -= 2;
-            else if(point[i] > 7) gra -= (point[i] - 7) / 2;
-            else gra -= (7 - point[i]) / 2;
-        }
-        for(int i = 0; i < 3; i++){
-            if(point[i] == 0) gra -= 4;
+            if(point[i] == 7) gra -= 12;
+            else if(point[i] == 0) gra -= 12;
+            else if(point[i] > 7) gra -= ((point[i] - 7) / 2);
+            else gra -= ((7 - point[i]) / 2);
         }
     }while((!ab[n]) || gra < gra_top);
     return map->lands[n];
@@ -561,6 +559,7 @@ int free_road_building_action(mapInfo *map, const int player_id){ //return 0 if 
     }
     return 0;
 }
+//AI
 
 bool is_resource_enough_b(mapInfo *map, const int player_id, const int resource_need[5]){
     for(int i = 0; i < 5; i++){
