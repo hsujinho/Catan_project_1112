@@ -104,6 +104,7 @@ typedef struct Player{
     int resource[5]; // 0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
     int number_of_knights;
     int length_of_road;
+    int number_of_building[3];
     int number_of_dev_card;
     bool has_longest_road;
     bool has_most_knights;
@@ -143,6 +144,7 @@ typedef struct mapInfo{
     piece **pieces;
     landbetween **lands;
     road **roads;
+    struct list_head *devcards;
 }mapInfo;
 
 // record the valid point to hold data and the type of the point
