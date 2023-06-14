@@ -104,6 +104,7 @@ typedef struct Player{
     int resource[5]; // 0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
     int number_of_knights;
     int length_of_road;
+    int number_of_building[3];
     int number_of_dev_card;
     bool has_longest_road;
     bool has_most_knights;
@@ -143,6 +144,7 @@ typedef struct mapInfo{
     piece **pieces;
     landbetween **lands;
     road **roads;
+    struct list_head *devcards;
 }mapInfo;
 
 // record the valid point to hold data and the type of the point
@@ -194,9 +196,6 @@ int piece_index(int x, int y, piece **pieces);
 landbetween **init_landbetween();
 road **init_road();
 struct list_head *init_devcard();
-int build_road(road **roads, player **players, int player_id, point start, point end);
-int build_building(landbetween **lands, player **players, int player_id, point p, int building);
-void take_initial_resource(landbetween **lands, player **players, int player_id, int dice);
 void player_round(const int player_id, landbetween **lands, player **players, piece **pieces, road **roads);
 int roll_dice();
 int take_resource(int DP, mapInfo *map, int *resource, int first_id);
@@ -204,8 +203,6 @@ void robber_situation();
 int discard_resource(player **players, int player_id);
 void resource_to_discard(player *player, int **decide_resource);
 void move_robber(int id, piece **pieces);
-int build_action();
-bool is_resource_enough( int32_t *standard, int32_t *input );
 point pick_land();
 void trade_action( mapInfo *info, int32_t id );
 void trade_with_bank( player *player_A, landbetween **maps );
@@ -213,7 +210,6 @@ void trade_with_player( player *candidate, player *player_A );
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice );
 void knight_action();
 void monopoly_action();
-void free_road_building_action();
 void year_of_plenty_action();
 bool is_in_three_pieces_lands_pos(const int x, const int y);
 bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
@@ -473,7 +469,7 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
                 if(b == SETTLEMENT)
                     land_surface = IMG_Load("picture/white_settlement.png");
                 else if(b == CITY)
-                    land_surface = IMG_Load("picture/whtie_city.png");
+                    land_surface = IMG_Load("picture/white_city.png");
             }
             else if(own == PLAYER3){
                 if(b == SETTLEMENT)
@@ -558,6 +554,8 @@ player **init_player(){
         players[i]->VP = 0;
         for(int j = 0; j < 5; j++)
             players[i]->resource[j] = 0;
+        for(int j = 0; j < 3; j++)
+            players[i]->number_of_building[j] = 0;
         players[i]->number_of_knights = 0;
         players[i]->length_of_road = 0;
         players[i]->number_of_dev_card = 0;
