@@ -328,7 +328,7 @@ int start_build(mapInfo *map, const int player_id){
     point location = {0, 0};
     printf("Player %d, please enter a coordinate to build village(row colume):\n", player_id);
     while(get_land_p(map, location) == -1 || !ability[get_land_p(map, location)]){
-        print_test_building(map, ability);
+        //print_test_building(map, ability);
         printf("\tbuilding location: ");
         x = 0;
         y = 0;
@@ -351,7 +351,7 @@ int start_build(mapInfo *map, const int player_id){
         point p2 = {0, 0};
         printf("Please enter two coordinate to build road(row colume):\n");
         while(get_road_2p(map, p1, p2) == -1 || !ability_road[get_road_2p(map, p1, p2)]){
-            print_test_road(map, ability_road);
+            //print_test_road(map, ability_road);
             x = 0;
             y = 0;
             printf("\troad start: ");
@@ -378,7 +378,7 @@ int start_build(mapInfo *map, const int player_id){
     return 0;
 }
 
-int free_road_building_action(mapInfo *map, const int player_id){
+int free_road_building_action(mapInfo *map, const int player_id){ //return 0 if build success; -1 if condition error; -2 if exit with no buinding; -3 if unknow error
     for(int n = 0; n < 2; n++){
         if(map->players[get_player_index(map, player_id)]->number_of_building[ROAD] >= 15){
             printf("Road number can not over than 15. \n\n");
@@ -425,7 +425,7 @@ int free_road_building_action(mapInfo *map, const int player_id){
                 return 0;
             }
         }
-        print_test_road(map, ability);
+        //print_test_road(map, ability);
 
         int x = 0, y = 0;
         point p1 = {0, 0};
@@ -474,12 +474,12 @@ bool is_resource_enough(mapInfo *map, const int player_id, const int resource_ne
 }
 
 int build_action(mapInfo *map, const int player_id){
+    printf("Player %d, welcome to building action.\n", player_id);
     while(1){
         int act = 0; 
         // 0 road; 1 village; 2 castle; 3 exit
 
-        printf("Player %d, welcome to building action. Input:\n", player_id);
-        printf("\t0 to exit \n\t1 to build road \n\t2 to build village \n\t3 to build castle \n\t4 to buy development card\n");
+        printf("Input:\t0 to exit \n\t1 to build road \n\t2 to build village \n\t3 to build castle \n\t4 to buy development card\n");
         printf("action:\t");
         if(scanf("%d", &act) == 0) continue;
 
@@ -528,7 +528,7 @@ int build_action(mapInfo *map, const int player_id){
                 printf("There isn't any location can be built.\n\n");
                 continue;
             }
-            print_test_road(map, ability);
+            //print_test_road(map, ability);
 
             int x = 0, y = 0;
             point p1 = {0, 0};
@@ -595,7 +595,7 @@ int build_action(mapInfo *map, const int player_id){
                 }
                 if(flag) ability[i] = 1;
             }
-            print_test_building(map, ability);
+            //print_test_building(map, ability);
             int jump_flag = 1;
             for(int i = 0; i < LAND_NUM; i++){
                 if(ability[i] == 1){
@@ -649,7 +649,7 @@ int build_action(mapInfo *map, const int player_id){
                     ability[i] = 0;
                 }
             }
-            print_test_building(map, ability);
+            //print_test_building(map, ability);
             int jump_flag = 1;
             for(int i = 0; i < LAND_NUM; i++){
                 if(ability[i] == 1){
@@ -690,8 +690,11 @@ int build_action(mapInfo *map, const int player_id){
                 printf("Resource is not enough. \n\n");
                 continue;
             } 
-
-
+            if(list_empty(map->devcards)){
+                printf("Cards run out. \n\n");
+                continue;
+            }
+            list_move(map->devcards->next, map->players[get_player_index(map, player_id)]->devcard_list);
             for(int i = 0; i < 5; i++){
                 map->players[get_player_index(map, player_id)]->resource[i] -= resource_need[i];
                 resource[i] += resource_need[i];

@@ -132,6 +132,7 @@ typedef struct mapInfo{
     piece **pieces;
     landbetween **lands;
     road **roads;
+    struct list_head *devcards;
 }mapInfo;
 
 // record the valid point to hold data and the type of the point
@@ -170,7 +171,7 @@ road **init_road();
 struct list_head *init_devcard();
 // int build_road(road **roads, player **players, int player_id, int index);
 // int build_building(landbetween **lands, player **players, int player_id, point p, int building);
-void take_initial_resource(landbetween **lands, player **players, int player_id, int dice);
+// void take_initial_resource(landbetween **lands, player **players, int player_id, int dice);
 void player_round(const int player_id, landbetween **lands, player **players, piece **pieces, road **roads);
 int roll_dice();
 int take_resource(int DP, piece **pieces, player **players, landbetween **lands, int *resource, int first_id);
@@ -187,7 +188,7 @@ void trade_with_player();
 void trade_with_port();
 void knight_action();
 void monopoly_action();
-void free_road_building_action();
+// void free_road_building_action();
 void year_of_plenty_action();
 
 void free_player(player **players);
