@@ -72,7 +72,7 @@
 #define PIECE_POINT 1
 #define LANDBETWEEN_POINT 2
 
-#define NOBODY 0
+#define NOBODY -1
 #define PLAYER1 1
 #define PLAYER2 2
 #define PLAYER3 3
@@ -403,24 +403,62 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
         x = x + PIECE_SIZE / 2 - LAND_SIZE / 2;
         y = y + PIECE_SIZE / 2 - LAND_SIZE / 2;
         SDL_Texture *land_texture = SDL_CreateTextureFromSurface(renderer, land_surface);
-        // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_Rect land_rect = {x, y, LAND_SIZE, LAND_SIZE};
         SDL_RenderCopy(renderer, land_texture, NULL, &land_rect);
-        // SDL_RenderFillRect(renderer, &land_rect);
         SDL_DestroyTexture(land_texture);
         SDL_FreeSurface(land_surface);
     }   
 
-    // for(int i = 0; i < ROAD_NUM; i++){
-    //     int x1 = map->roads[i]->start.x;
-    //     int y1 = map->roads[i]->start.y;
-    //     int x2 = map->roads[i]->end.x;
-    //     int y2 = map->roads[i]->end.y;
+    for(int i = 0; i < ROAD_NUM; i++){
+        int x1 = map->roads[i]->start.x;
+        int y1 = map->roads[i]->start.y;
+        int x2 = map->roads[i]->end.x;
+        int y2 = map->roads[i]->end.y;
 
-    //     SDL_Surface *piece_surface = NULL;
-    //     if(roads[i]->dir = LD)
-    //         piece_surface = IMG_Load("picture/LD_.png");
-    // }
+        SDL_Surface *road_surface = NULL;
+        if(roads[i]->dir = LD){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/LD_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/LD_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/LD_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/LD_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/LD_blue.png");
+        }
+        else if(roads[i]->dir = RD){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/RD_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/RD_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/RD_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/RD_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/RD_blue.png");
+        }
+        else if(roads[i]->dir = D){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/D_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/D_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/D_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/D_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/D_blue.png");
+        }
+
+        SDL_Texture *land_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
+        // SDL_Rect land_rect = {x, y, LAND_SIZE, LAND_SIZE};
+        // SDL_RenderCopy(renderer, land_texture, NULL, &land_rect);
+        SDL_DestroyTexture(land_texture);
+        SDL_FreeSurface(road_surface);
+    }
 
     SDL_RenderPresent(renderer);
 }
@@ -625,7 +663,7 @@ road **init_road(){
     road **roads = (road **)malloc(sizeof(road *) * ROAD_NUM);
     for(int i = 0; i < ROAD_NUM; i++){
         roads[i] = (road *)malloc(sizeof(road));
-        roads[i]->owner = -1;
+        roads[i]->owner = NOBODY;
     }
 
     int p = 0;
@@ -638,9 +676,9 @@ road **init_road(){
         roads[p]->end.y = 1;
         roads[p+1]->end.x = 4 + i * 2;
         roads[p+1]->end.y = 1;
-        p += 2;
         roads[p]->dir = LD;
         roads[p+1]->dir = RD;
+        p += 2;
     }
 
     /*      | | | |        */
@@ -649,8 +687,8 @@ road **init_road(){
         roads[p]->start.y = 1;
         roads[p]->end.x = 2 + i * 2;
         roads[p]->end.y = 2;
-        p++;
         roads[p]->dir = D;
+        p++;
     }
 
     /*      /\/\/\/\        */
@@ -662,9 +700,9 @@ road **init_road(){
         roads[p]->end.y = 3;
         roads[p+1]->end.x = 3 + i * 2;
         roads[p+1]->end.y = 3;
-        p += 2;
         roads[p]->dir = LD;
         roads[p+1]->dir = RD;
+        p += 2;
     }
 
     /*      | | | | |       */
@@ -673,8 +711,8 @@ road **init_road(){
         roads[p]->start.y = 3;
         roads[p]->end.x = 1 + i * 2;
         roads[p]->end.y = 4;
-        p++;
         roads[p]->dir = D;
+        p++;
     }
 
     /*      /\/\/\/\/\      */
@@ -686,9 +724,9 @@ road **init_road(){
         roads[p]->end.y = 5;
         roads[p+1]->end.x = 2 + i * 2;
         roads[p+1]->end.y = 5;
-        p += 2;
         roads[p]->dir = LD;
         roads[p+1]->dir = RD;
+        p += 2;
     }
 
     /*      | | | | | |     */
@@ -697,8 +735,8 @@ road **init_road(){
         roads[p]->start.y = 5;
         roads[p]->end.x = i * 2;
         roads[p]->end.y = 6;
-        p++;
         roads[p]->dir = D;
+        p++;
     }
 
     /*      \/\/\/\/\/      */
@@ -710,9 +748,9 @@ road **init_road(){
         roads[p]->start.y = 6;
         roads[p+1]->start.x = 2 + i * 2;
         roads[p+1]->start.y = 6;
-        p += 2;
         roads[p]->dir = RD;
         roads[p+1]->dir = LD;
+        p += 2;
     }
 
     /*      | | | | |       */
@@ -721,8 +759,8 @@ road **init_road(){
         roads[p]->start.y = 7;
         roads[p]->end.x = 1 + i * 2;
         roads[p]->end.y = 8;
-        p++;
         roads[p]->dir = D;
+        p++;
     }
 
     /*      \/\/\/\/        */
@@ -734,9 +772,9 @@ road **init_road(){
         roads[p]->start.y = 8;
         roads[p+1]->start.x = 3 + i * 2;
         roads[p+1]->start.y = 8;
-        p += 2;
         roads[p]->dir = RD;
         roads[p+1]->dir = LD;
+        p += 2;
     }
 
     /*      | | | |     */
@@ -745,8 +783,8 @@ road **init_road(){
         roads[p]->start.y = 9;
         roads[p]->end.x = 2 + i * 2;
         roads[p]->end.y = 10;
-        p++;
         roads[p]->dir = D;
+        p++;
     }
 
     /*      \/\/\/      */
@@ -758,9 +796,9 @@ road **init_road(){
         roads[p]->start.y = 10;
         roads[p+1]->start.x = 4 + i * 2;
         roads[p+1]->start.y = 10;
-        p += 2;
         roads[p]->dir = RD;
         roads[p+1]->dir = LD;
+        p += 2;
     }
 
     return roads;
