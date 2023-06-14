@@ -1,5 +1,6 @@
 #include "catan.h"
 #include "color.h"
+#include "build.h"
 
 void print_simple_map(){
     for(int i = 0; i < Y_LONG; i++){
