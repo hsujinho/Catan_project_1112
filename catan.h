@@ -9,6 +9,7 @@
 #include <math.h>
 #include <limits.h>
 #include "linuxlist.h"
+#include "color.h"
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL.h>
 
@@ -970,6 +971,7 @@ void trade_action( mapInfo *info, int32_t id )
     if( id != 2 )	printf("2. Player2\n");
     if( id != 3 )	printf("3. Player3\n");
     if( id != 4 )	printf("4. Player4\n");
+
 			printf("5. Bank\n");
 			printf("6. Quit\n");
     
@@ -982,9 +984,9 @@ void trade_action( mapInfo *info, int32_t id )
 	    printf(RED"Please enter one integers\n"WHITE);
 	    while(getchar() != '\n');
 	}
-	    if( choice < 1 || choice > 6 )
+	    if( choice < 1 || choice > 6 || choice == id )
 	    {
-		printf("Your choice must be 1 - 6\n");
+		printf("Your choice must be 1 - 6 and not the list index not on the list\n");
 		return;
 	    }
     }
@@ -996,34 +998,11 @@ void trade_action( mapInfo *info, int32_t id )
     if( choice == 6 )	return;
     if( choice == 5 )
     {
-	if( id == 1 )	trade_with_bank( info->players[ PLAYER1 ], info->lands );
-	if( id == 2 )	trade_with_bank( info->players[ PLAYER2 ], info->lands );
-	if( id == 3 )	trade_with_bank( info->players[ PLAYER3 ], info->lands );
-	if( id == 4 )	trade_with_bank( info->players[ PLAYER4 ], info->lands );
+	trade_with_bank( info->players[ player_index( id, info->players ) ], info->lands );
     }
-    else if( choice == 4 )
+    else
     {
-	if( id == 1 )	trade_with_player( info->players[ PLAYER4 ], info->players[ PLAYER1 ] );
-	if( id == 2 )	trade_with_player( info->players[ PLAYER4 ], info->players[ PLAYER2 ] );
-	if( id == 3 )	trade_with_player( info->players[ PLAYER4 ], info->players[ PLAYER3 ] );
-    }
-    else if( choice == 3 )
-    {
-	if( id == 1 )	trade_with_player( info->players[ PLAYER3 ], info->players[ PLAYER1 ] );
-	if( id == 2 )	trade_with_player( info->players[ PLAYER3 ], info->players[ PLAYER2 ] );
-	if( id == 4 )	trade_with_player( info->players[ PLAYER3 ], info->players[ PLAYER4 ] );
-    }
-    else if( choice == 2 )
-    {
-	if( id == 1 )	trade_with_player( info->players[ PLAYER2 ], info->players[ PLAYER1 ] );
-	if( id == 3 )	trade_with_player( info->players[ PLAYER2 ], info->players[ PLAYER3 ] );
-	if( id == 4 )	trade_with_player( info->players[ PLAYER2 ], info->players[ PLAYER4 ] );
-    }
-    else if( choice == 1 )
-    {
-	if( id == 2 )	trade_with_player( info->players[ PLAYER1 ], info->players[ PLAYER2 ] );
-	if( id == 3 )	trade_with_player( info->players[ PLAYER1 ], info->players[ PLAYER3 ] );
-	if( id == 4 )	trade_with_player( info->players[ PLAYER1 ], info->players[ PLAYER4 ] );
+	trade_with_player( info->players[ player_index( choice, info->players ) ], info->players[ player_index( id, info->players ) ] );
     }
 
     return;
@@ -1230,11 +1209,11 @@ void monopoly_action( mapInfo *info, int id )
     {
 	for( int32_t i = 0; i < 5; i++ )
 	{
-	    if( info->players[ id - 1 ]->resource[i] < get_choice )	get_choice = i;
+	    if( info->players[ player_index( id, info->players ) ]->resource[i] < get_choice )	get_choice = i;
 	}
     }
 
-    player *monoply = info->players[ id - 1 ];
+    player *monoply = info->players[ player_index( id, info->players ) ];
     for( int32_t i = 0; i < PLAYER_NUM; i++ )
     {
 	if( i + 1 == id )   continue;
@@ -1245,7 +1224,7 @@ void monopoly_action( mapInfo *info, int id )
 
     /* Devcard modification */
     monoply->number_of_dev_card -= 1;
-    struct list_head *pos = info->players[ id - 1 ]->devcard_list->next;
+    struct list_head *pos = info->players[ player_index( id, info->players ) ]->devcard_list->next;
     while( pos )
     {
 	devcard *card = list_entry( pos, devcard, node );
@@ -1292,16 +1271,16 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     {
 	for( int32_t i = 0; i < 5; i++ )
 	{
-	    if( info->players[ id - 1 ]->resource[i] < get_choice1 && info->players[ id - 1 ]->resource[i] < get_choice2 )
+	    if( info->players[ player_index( id, info->players ) ]->resource[i] < get_choice1 && info->players[ player_index( id, info->players ) ]->resource[i] < get_choice2 )
 	    {
 		get_choice2 = get_choice1;
-		get_choice1 = info->players[ id - 1 ]->resource[i];
+		get_choice1 = info->players[ player_index( id, info->players ) ]->resource[i];
 	    }
-	    else if( info->players[ id - 1 ]->resource[i] > get_choice1 && info->players[ id - 1 ]->resource[i] < get_choice2 )
+	    else if( info->players[ player_index( id, info->players ) ]->resource[i] > get_choice1 && info->players[ player_index( id, info->players ) ]->resource[i] < get_choice2 )
 	    {
-		get_choice2 = info->players[ id - 1 ]->resource[i];
+		get_choice2 = info->players[ player_index( id, info->players ) ]->resource[i];
 	    }
-	    else if( info->players[ id - 1 ]->resource[i] > get_choice1 && info->players[ id - 1 ]->resource[i] > get_choice2 )
+	    else if( info->players[ player_index( id, info->players ) ]->resource[i] > get_choice1 && info->players[ player_index( id, info->players ) ]->resource[i] > get_choice2 )
 	    {
 		continue;
 	    }
@@ -1321,13 +1300,13 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     {
 	resource[ get_choice1 ] -= 1;
 	resource[ get_choice2 ] -= 1;
-	info->players[ id - 1 ]->resource[ get_choice1 ] += 1;
-	info->players[ id - 1 ]->resource[ get_choice2 ] += 1;
+	info->players[ player_index( id, info->players ) ]->resource[ get_choice1 ] += 1;
+	info->players[ player_index( id, info->players ) ]->resource[ get_choice2 ] += 1;
     }
 
     /* Devcard modification */
-    info->players[ id - 1 ]->number_of_dev_card -= 1;
-    struct list_head *pos = info->players[ id - 1 ]->devcard_list->next;
+    info->players[ player_index( id, info->players ) ]->number_of_dev_card -= 1;
+    struct list_head *pos = info->players[ player_index( id, info->players ) ]->devcard_list->next;
     while( pos )
     {
 	devcard *card = list_entry( pos, devcard, node );
