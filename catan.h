@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include <limits.h>
@@ -24,7 +25,7 @@
 #define NUMBER_PIXEL 35
 
 #define ARR_NUM(arr, type) (sizeof(arr) / sizeof(type))
-#define POINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-d}, {x-d, y}, {x+d, y}, {x-d, y+d}, {x+d, y+d}, {x, y+d}}
+#define POINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-2*d}, {x-d, y}, {x+d, y}, {x-d, y-d}, {x+d, y-d}, {x, y+d}}
 #define EPOINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-2*d}, {x-2*d, y-d}, {x-2*d, y+d}, {x, y+2*d}, {x+2*d, y+d}, {x+2*d, y-d}}
 
 // randomize times
@@ -62,22 +63,26 @@
 #define GRAIN 3
 #define ORE 4
 
-// piece type
+// piece type  0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
 #define HILL 0
 #define FOREST 1
-#define MOUNTAIN 2
+#define MOUNTAIN 4
 #define FIELD 3
-#define PASTURE 4
+#define PASTURE 2
 #define DESERT 5
 
 #define PIECE_POINT 1
 #define LANDBETWEEN_POINT 2
 
-#define NOBODY 0
+#define NOBODY -1
 #define PLAYER1 1
 #define PLAYER2 2
 #define PLAYER3 3
 #define PLAYER4 4
+
+#define LD 0
+#define RD 1
+#define D  2
 
 // number of element 
 #define PIECE_NUM 19
@@ -101,6 +106,7 @@ typedef struct Player{
     int resource[5]; // 0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
     int number_of_knights;
     int length_of_road;
+    int number_of_building[3];
     int number_of_dev_card;
     bool has_longest_road;
     bool has_most_knights;
@@ -126,6 +132,7 @@ typedef struct Road{
     point start;
     point end;
     int owner;
+    int dir;
 }road;
 
 typedef struct DevCard{
@@ -139,6 +146,7 @@ typedef struct mapInfo{
     piece **pieces;
     landbetween **lands;
     road **roads;
+    struct list_head *devcards;
 }mapInfo;
 
 // record the valid point to hold data and the type of the point
@@ -190,9 +198,6 @@ int piece_index(int x, int y, piece **pieces);
 landbetween **init_landbetween();
 road **init_road();
 struct list_head *init_devcard();
-int build_road(road **roads, player **players, int player_id, point start, point end);
-int build_building(landbetween **lands, player **players, int player_id, point p, int building);
-void take_initial_resource(landbetween **lands, player **players, int player_id, int dice);
 void player_round(const int player_id, landbetween **lands, player **players, piece **pieces, road **roads);
 int roll_dice();
 int take_resource(int DP, mapInfo *map, int *resource, int first_id);
@@ -200,8 +205,6 @@ void robber_situation();
 int discard_resource(player **players, int player_id);
 void resource_to_discard(player *player, int **decide_resource);
 void move_robber(int id, piece **pieces);
-int build_action();
-bool is_resource_enough( int32_t *standard, int32_t *input );
 point pick_land();
 void trade_action( mapInfo *info, int32_t id );
 void trade_with_bank( player *player_A, landbetween **maps );
@@ -291,12 +294,13 @@ void render_pieces(SDL_Renderer *renderer, mapInfo *map){
 }
 
 void render_map(SDL_Renderer *renderer, mapInfo *map){
-     //set background color
+    //set background color
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
     piece **pieces = map->pieces;
     landbetween **lands = map->lands;
+    road **roads = map->roads;
 
     for(int i = 0; i < PIECE_NUM; i++){
         int x = pieces[i]->p.x;
@@ -356,6 +360,105 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
         SDL_FreeSurface(num_surface);   
     }
 
+    for(int i = 0; i < ROAD_NUM; i++){
+        int x1 = map->roads[i]->start.x;
+        int y1 = map->roads[i]->start.y;
+        int x2 = map->roads[i]->end.x;
+        int y2 = map->roads[i]->end.y;
+        int x = (x1 + x2) / 2;
+        int y = (y1 + y2) / 2;
+        x *= PIECE_SIZE / 2;
+        y *= PIECE_SIZE / 2;
+
+        SDL_Surface *road_surface = NULL;
+        if(roads[i]->dir == LD){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/LD_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/LD_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/LD_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/LD_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/LD_blue.png");
+
+            x = roads[i]->start.x;
+            x = x * 2 * VIC_LEN;
+            y = roads[i]->start.y;
+            y = y + y / 2;
+            y = y * VIC_LEN;
+            y = y + PIECE_SIZE / 2 - PIECE_SIZE / 40;
+
+            double angle = 45 - 26.5650511770;
+            SDL_Point center = {PIECE_SIZE / 2, 0};            
+            SDL_Rect dstRect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+
+            SDL_Texture *road_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
+            // SDL_Rect road_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+            // SDL_RenderCopy(renderer, road_texture, NULL, &road_rect);
+            SDL_RenderCopyEx(renderer, road_texture, NULL, &dstRect, angle, &center, SDL_FLIP_NONE);
+            SDL_DestroyTexture(road_texture);
+        }
+        else if(roads[i]->dir == RD){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/RD_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/RD_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/RD_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/RD_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/RD_blue.png");
+
+            x = roads[i]->start.x;
+            x = x * 2 * VIC_LEN;
+            x += PIECE_SIZE / 2 + PIECE_SIZE / 10 + PIECE_SIZE / 40;
+            y = roads[i]->start.y;
+            y = y + y / 2;
+            y = y * VIC_LEN;
+            y = y + PIECE_SIZE / 2 - PIECE_SIZE / 40;
+
+            double angle = -1 * (45 - 26.5650511770);
+            SDL_Point center = {0, PIECE_SIZE / 2};            
+            SDL_Rect dstRect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+
+            SDL_Texture *road_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
+            // SDL_Rect road_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+            // SDL_RenderCopy(renderer, road_texture, NULL, &road_rect);
+            SDL_RenderCopyEx(renderer, road_texture, NULL, &dstRect, angle, &center, SDL_FLIP_NONE);
+            SDL_DestroyTexture(road_texture);
+        }
+        else if(roads[i]->dir == D){
+            if(roads[i]->owner == NOBODY)
+                road_surface = IMG_Load("picture/D_black.png");
+            else if(roads[i]->owner == PLAYER1)
+                road_surface = IMG_Load("picture/D_red.png");
+            else if(roads[i]->owner == PLAYER2)
+                road_surface = IMG_Load("picture/D_white.png");
+            else if(roads[i]->owner == PLAYER3)
+                road_surface = IMG_Load("picture/D_orange.png");
+            else if(roads[i]->owner == PLAYER4)
+                road_surface = IMG_Load("picture/D_blue.png");
+
+            x = roads[i]->start.x;
+            x = x * 2 * VIC_LEN;
+            x += PIECE_SIZE / 4;
+            y = roads[i]->start.y;
+            y = y + y / 2;
+            y = y * VIC_LEN;
+            y = y + PIECE_SIZE / 2 + PIECE_SIZE / 20;
+
+
+            SDL_Texture *land_texture = SDL_CreateTextureFromSurface(renderer, road_surface);
+            SDL_Rect land_rect = {x, y, PIECE_SIZE / 2, PIECE_SIZE / 2};
+            SDL_RenderCopy(renderer, land_texture, NULL, &land_rect);
+            SDL_DestroyTexture(land_texture);
+        }
+        SDL_FreeSurface(road_surface);
+    }
+
     for(int i = 0; i < LAND_NUM; i++){
         int x = lands[i]->p.x;
         int y = lands[i]->p.y;
@@ -379,7 +482,7 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
                 if(b == SETTLEMENT)
                     land_surface = IMG_Load("picture/white_settlement.png");
                 else if(b == CITY)
-                    land_surface = IMG_Load("picture/whtie_city.png");
+                    land_surface = IMG_Load("picture/white_city.png");
             }
             else if(own == PLAYER3){
                 if(b == SETTLEMENT)
@@ -398,13 +501,11 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
         x = x + PIECE_SIZE / 2 - LAND_SIZE / 2;
         y = y + PIECE_SIZE / 2 - LAND_SIZE / 2;
         SDL_Texture *land_texture = SDL_CreateTextureFromSurface(renderer, land_surface);
-        // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
         SDL_Rect land_rect = {x, y, LAND_SIZE, LAND_SIZE};
         SDL_RenderCopy(renderer, land_texture, NULL, &land_rect);
-        // SDL_RenderFillRect(renderer, &land_rect);
         SDL_DestroyTexture(land_texture);
         SDL_FreeSurface(land_surface);
-    }
+    }   
 
     SDL_RenderPresent(renderer);
 }
@@ -466,6 +567,8 @@ player **init_player(){
         players[i]->VP = 0;
         for(int j = 0; j < 5; j++)
             players[i]->resource[j] = 0;
+        for(int j = 0; j < 3; j++)
+            players[i]->number_of_building[j] = 0;
         players[i]->number_of_knights = 0;
         players[i]->length_of_road = 0;
         players[i]->number_of_dev_card = 0;
@@ -609,7 +712,7 @@ road **init_road(){
     road **roads = (road **)malloc(sizeof(road *) * ROAD_NUM);
     for(int i = 0; i < ROAD_NUM; i++){
         roads[i] = (road *)malloc(sizeof(road));
-        roads[i]->owner = -1;
+        roads[i]->owner = NOBODY;
     }
 
     int p = 0;
@@ -622,6 +725,8 @@ road **init_road(){
         roads[p]->end.y = 1;
         roads[p+1]->end.x = 4 + i * 2;
         roads[p+1]->end.y = 1;
+        roads[p]->dir = LD;
+        roads[p+1]->dir = RD;
         p += 2;
     }
 
@@ -631,6 +736,7 @@ road **init_road(){
         roads[p]->start.y = 1;
         roads[p]->end.x = 2 + i * 2;
         roads[p]->end.y = 2;
+        roads[p]->dir = D;
         p++;
     }
 
@@ -643,6 +749,8 @@ road **init_road(){
         roads[p]->end.y = 3;
         roads[p+1]->end.x = 3 + i * 2;
         roads[p+1]->end.y = 3;
+        roads[p]->dir = LD;
+        roads[p+1]->dir = RD;
         p += 2;
     }
 
@@ -652,6 +760,7 @@ road **init_road(){
         roads[p]->start.y = 3;
         roads[p]->end.x = 1 + i * 2;
         roads[p]->end.y = 4;
+        roads[p]->dir = D;
         p++;
     }
 
@@ -664,6 +773,8 @@ road **init_road(){
         roads[p]->end.y = 5;
         roads[p+1]->end.x = 2 + i * 2;
         roads[p+1]->end.y = 5;
+        roads[p]->dir = LD;
+        roads[p+1]->dir = RD;
         p += 2;
     }
 
@@ -673,6 +784,7 @@ road **init_road(){
         roads[p]->start.y = 5;
         roads[p]->end.x = i * 2;
         roads[p]->end.y = 6;
+        roads[p]->dir = D;
         p++;
     }
 
@@ -685,6 +797,8 @@ road **init_road(){
         roads[p]->start.y = 6;
         roads[p+1]->start.x = 2 + i * 2;
         roads[p+1]->start.y = 6;
+        roads[p]->dir = RD;
+        roads[p+1]->dir = LD;
         p += 2;
     }
 
@@ -694,6 +808,7 @@ road **init_road(){
         roads[p]->start.y = 7;
         roads[p]->end.x = 1 + i * 2;
         roads[p]->end.y = 8;
+        roads[p]->dir = D;
         p++;
     }
 
@@ -706,6 +821,8 @@ road **init_road(){
         roads[p]->start.y = 8;
         roads[p+1]->start.x = 3 + i * 2;
         roads[p+1]->start.y = 8;
+        roads[p]->dir = RD;
+        roads[p+1]->dir = LD;
         p += 2;
     }
 
@@ -715,6 +832,7 @@ road **init_road(){
         roads[p]->start.y = 9;
         roads[p]->end.x = 2 + i * 2;
         roads[p]->end.y = 10;
+        roads[p]->dir = D;
         p++;
     }
 
@@ -727,6 +845,8 @@ road **init_road(){
         roads[p]->start.y = 10;
         roads[p+1]->start.x = 4 + i * 2;
         roads[p+1]->start.y = 10;
+        roads[p]->dir = RD;
+        roads[p+1]->dir = LD;
         p += 2;
     }
 
@@ -774,13 +894,15 @@ int take_resource(int DP, mapInfo *map, int *resource, int first_id){
     piece **pieces = map->pieces;
     landbetween **lands = map->lands;
     int turn[4] = {0};
+    int playIdx = player_index(first_id, players);
+
     for(int i = 0; i < 4; i++){
-        int idx = (player_index(first_id, players) + i) % 4;
+        int idx = (playIdx + i) % 4;
         turn[i] = players[idx]->id;
     }
 
     // for each player in order
-    for(int k = 0; k < 4; k++){
+    for(int k = 0; k < PLAYER_NUM; k++){
         // for each piece with same dice point && doesn't have robber
         for(int i = 0; i < PIECE_NUM; i++){
             if(DP == pieces[i]->number && pieces[i]->robberFlag == false){
