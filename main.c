@@ -145,7 +145,7 @@ int main(){
                 }
                 else{
                     // TODO: let bot choose initial building
-                    start_build(map, id);
+                    start_build(map, id, renderer);
                     render_map(renderer, map);
                 }
             }
@@ -231,7 +231,7 @@ int main(){
                         }
                         else{
                             // TODO: let bot choose initial building
-                            start_build(map, players[j]->id);
+                            start_build(map, players[j]->id, renderer);
                             render_map(renderer, map);
                         }
                     }
