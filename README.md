@@ -6,7 +6,7 @@
 
 | 組員姓名 | 學號 |
 | :--------:| :----: |
-| 徐政皓   | 40947043S |
+| 徐政皓 | 40947043S |
 | 陳柏瑜 | 41047054S |
 | 洪維駿 | 40923205L |
 
@@ -18,7 +18,7 @@ sudo apt-get install libsdl2-dev libsdl2-image-dev
 若您使用其他系統或在安裝上遇到問題，可以進入 SDL 官網查詢如何安裝，連結網址如下：
 https://www.libsdl.org/
 
-常見問題：Package sdl2_image was not found in the pkg-config search path.
+常見問題：Package sdl2_image was not found in the pkg-config search path. 
 您可以嘗試執行 sudo find / -name "sdl2_image.pc" 搜尋電腦中是否有 sdl2_image.pc 檔案。有時它會叫做 SDL2_image.pc，您可以使用 sudo mv 來重新命名。
 
 完畢後，在終端機移動到程式所在目錄並輸入 make 進行編譯，之後執行 ./main 就可以開始進行遊戲了。
@@ -74,6 +74,13 @@ https://www.libsdl.org/
 ##### 交易
 
 ##### 建造
+
+在建造階段，玩家可以選擇消耗資源建造道路、村莊以及城市三種建築，或購買隨機種類的發展卡。若為電腦玩家，則自動進行建築建造或發展卡購買。四種行為的資源消耗如下：
+| :--------:| :----: |
+| 道路　 | １磚１木 　　　　　　|
+| 村莊　 | １磚１木１毛１穀 　　|
+| 城市　 | 　　　　　　２穀３礦 |
+| 發展卡 | 　　　　１毛１穀１礦 |
 
 ##### 結束回合
 
