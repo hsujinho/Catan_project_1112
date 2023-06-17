@@ -1290,8 +1290,8 @@ int most_knight_check(SDL_Renderer *renderer, mapInfo *map){
     }
     for(int i = 0; i < PLAYER_NUM; i++){
         if(i == index){
+            if(map->players[i]->has_most_knights != 1) map->players[i]->VP += 2;
             map->players[i]->has_most_knights = 1;
-            map->players[i]->VP += 2;
         }
         else{
             if(map->players[i]->has_most_knights == 1) map->players[i]->VP -= 2;
@@ -1326,8 +1326,8 @@ int longest_road_check(SDL_Renderer *renderer, mapInfo *map){
     }
     for(int i = 0; i < PLAYER_NUM; i++){
         if(i == index){
+            if(map->players[i]->has_longest_road != 1) map->players[i]->VP += 2;
             map->players[i]->has_longest_road = 1;
-            map->players[i]->VP += 2;
         }
         else{
             if(map->players[i]->has_longest_road == 1) map->players[i]->VP -= 2;

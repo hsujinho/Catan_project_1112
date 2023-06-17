@@ -587,6 +587,7 @@ int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer){
                 continue;
             } 
             location = from_screen_to_coor(x, y);
+            printf("\n");
             if(location.x * location.y == 0 || get_land_p(map, location) == -1 || !ability[get_land_p(map, location)]) printf("Location can not build, please try again.\n");
         }
     }
@@ -595,7 +596,7 @@ int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer){
         location = ai_choose_building(map, ability)->p;
     }
     if(build_building(map, player_id, get_land_p(map, location)) != -1){
-        printf("\tvillage build.\n\n");
+        printf("\tvillage build.\n");
         take_initial_resource(map, player_id, location);
         render_map(renderer, map);
         int ability_road[ROAD_NUM] = {0};
