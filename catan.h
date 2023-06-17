@@ -1085,54 +1085,93 @@ bool is_resource_enough( int32_t *standard, int32_t *input )
  * trade_action - selection list for trade action
  * @info:   access of other game information
  * @id:	    player who is trading
- * AI version: done
+ * AI version: testing
+ * [ Compile: not yet, Run: Noy yet ]
  */
 void trade_action( mapInfo *info, int32_t id )
 {
-    if( id != 1 ) // AI version
+    player *player_A = info->players[ player_index( id, info->players ) ];
+    int32_t choice = 0;
+
+    if( id == 1 ) // Player version
     {
-	printf("Quit trading\n");
-	return;
+	while( 1 )
+	{
+	    /* Select trade action */
+	    printf("Who do you want to trade with?\n");
+	    printf("1. player2\n");
+	    printf("2. player3\n");
+	    printf("3. player4\n");
+	    printf("4. Bank\n");
+	    printf("5. Quit\n");
+	    printf("Your choice: ");
+	
+	    if( scanf("%d", &choice ) != 1 )
+	    {
+		printf(RED"Please enter one integers\n"WHITE);
+		while(getchar() != '\n');
+	    }
+	    if( choice < 1 || choice > 5 )
+	    {
+		printf("Your choice must be 1 - 5 and cannot be yourself\n");
+		continue;
+	    }
+	    else    break;
+	}
     }
-
-    while( 1 ) // player version
+    else // AI version
     {
-	/* Select trade action */
-	printf("Who do you want to trade with?\n");
-	printf("1. player2\n");
-	printf("2. player3\n");
-	printf("3. player4\n");
-	printf("4. Bank\n");
-	printf("5. Quit\n");
-	printf("Your choice: ");
-    
-	int32_t choice = 0;
+	int flag = -1;
+	int max = 0;
+	for( int i = 0; i < 5; i++ ) // check if lack of any resource
+	{
+	    if( player_A->resource[i] == 0 )
+	    {
+		flag = i;
+	    }
+	    else if( player_A->resource[i] > max )
+	    {
+		max = player_A->resource[i];
+	    }
+	}
 
-	if( scanf("%d", &choice ) != 1 )
-	{
-	    printf(RED"Please enter one integers\n"WHITE);
-	    while(getchar() != '\n');
-	}
-	if( choice < 1 || choice > 5 )
-	{
-	    printf("Your choice must be 1 - 5\n");
-	    continue;
-	}
-    
-	if( choice == 5 )
-	{
-	    printf("Quit trading\n");
-	    break;
-	}
-	else if( choice == 4 )
-	{
-	    trade_with_bank( info->players[ player_index( id, info->players ) ], info->lands );
-	}
+	if( flag == -1 )    choice = 5;
 	else
 	{
-	    trade_with_player( info->players[ player_index( choice+1, info->players ) ], info->players[ player_index( id, info->players ) ] );
+	    choice = 5;
+	    for( int i = 0; i < 4; i++ )
+	    {
+		if( info->players[i]->id == player_A->id )	continue;
+		else
+		{
+		    if( info->players[i]->resource[flag] != 0 )
+		    {
+			choice = info->players[i]->id - 1;
+			break;
+		    }
+		}
+	    }
+	    if( choice == 5 )
+	    {
+		if( resource[flag] != 0 && max >= 4 )   choice = 4;
+	    }
 	}
     }
+    
+    if( choice == 5 )
+    {
+	if( player_A->id == 1 )	    printf("Quit trading\n");
+	return;
+    }
+    else if( choice == 4 )
+    {
+	trade_with_bank( player_A, info->lands );
+    }
+    else
+    {
+	trade_with_player( info->players[ player_index( choice+1, info->players ) ], player_A );
+    }
+
     return;
 }
 
@@ -1140,41 +1179,55 @@ void trade_action( mapInfo *info, int32_t id )
  * trade_with_bank - simply trade action with bank
  * @player_A:	player who is trading
  * @maps:	for trade_with_port() needed
- * AI version: Not exist
+ * AI version: testing
+ * [ Compile: not yet, Run: Not yet ]
  */
 void trade_with_bank( player *player_A, landbetween **maps )
 {
     /* Get input */
     int32_t get_choice = 0;
-    printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-    if( scanf("%d", &get_choice ) != 1 )
-    {
-	printf(RED"Please enter one integers\n"WHITE);
-	while(getchar() != '\n');
-    }
-	if( get_choice < 0 || get_choice > 4 )
-	{
-	    printf("You can only type 0 - 4!\n");
-	    return;
-	}
-
     int32_t discard_choice = 0;
-    printf("What do you want to discard ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-    if( scanf("%d", &discard_choice ) != 1 )
+
+    if( player_A->id == 1 )
     {
-	printf(RED"Please enter one integers\n"WHITE);
-	while(getchar() != '\n');
+	printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+	if( scanf("%d", &get_choice ) != 1 )
+	{
+	    printf(RED"Please enter one integers\n"WHITE);
+	    while(getchar() != '\n');
+	}
+	    if( get_choice < 0 || get_choice > 4 )
+	    {
+		printf("You can only type 0 - 4!\n");
+		return;
+	    }
+
+	printf("What do you want to discard ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+	if( scanf("%d", &discard_choice ) != 1 )
+	{
+	    printf(RED"Please enter one integers\n"WHITE);
+	    while(getchar() != '\n');
+	}
+	    if( discard_choice < 0 || discard_choice > 4 )
+	    {
+		printf("You can only type 0 - 4!\n");
+		return;
+	    }
+	    if( discard_choice == get_choice )
+	    {
+		printf(RED"CONFLICT: What you want to get is the same as what you want to discard!\n"WHITE);
+		return;
+	    }
     }
-	if( discard_choice < 0 || discard_choice > 4 )
+    else
+    {
+	int max = 0;
+	for( int i = 0; i < 5; i++ )
 	{
-	    printf("You can only type 0 - 4!\n");
-	    return;
+	    if( player_A->resource[i] == 0  )	get_choice = i;
+	    else if( player_A->resource[i] > max )	{   max = player_A->resource[i];	    discard_choice = i;	}
 	}
-	if( discard_choice == get_choice )
-	{
-	    printf(RED"CONFLICT: What you want to get is the same as what you want to discard!\n"WHITE);
-	    return;
-	}
+    }
 
     /* Trading */
     int32_t credit = trade_with_port( player_A, maps, get_choice );
@@ -1208,42 +1261,119 @@ void trade_with_bank( player *player_A, landbetween **maps )
  * trade_with_player - trade action from player_A to candidate
  * @candidate:	player who plaayer_A wants to trade with
  * @player_A:	player who is trading
- * AI version: Not exist
+ * AI version: testing
+ * [ Compile: not yet, Run: not yet ]
  */
 void trade_with_player( player *candidate, player *player_A )
 {
     // Resources
     int32_t resource_discard[5]  = {0};
-    printf("Please type number of resources you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
-    if( scanf("%d %d %d %d %d", &resource_discard[0], &resource_discard[1], &resource_discard[2], &resource_discard[3], &resource_discard[4] ) != 5 )
-    {
-	printf(RED"Please enter five integers\n"WHITE);
-	while(getchar() != '\n');
-    }
-
     int32_t resource_get[5]  = {0};
-    printf("What do you want to get ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
-    if( scanf("%d %d %d %d %d", &resource_get[0], &resource_get[1], &resource_get[2], &resource_get[3], &resource_get[4] ) != 5 )
+    int get_choice = 0;
+    int discard_choice = 0;
+    
+    if( player_A->id == 1 )
     {
-	printf(RED"Please enter five integers\n"WHITE);
-	while(getchar() != '\n');
+	printf("Please type number of resources you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
+	if( scanf("%d %d %d %d %d", &resource_discard[0], &resource_discard[1], &resource_discard[2], &resource_discard[3], &resource_discard[4] ) != 5 )
+	{
+	    printf(RED"Please enter five integers\n"WHITE);
+	    while(getchar() != '\n');
+	}
+
+	printf("What do you want to get ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
+	if( scanf("%d %d %d %d %d", &resource_get[0], &resource_get[1], &resource_get[2], &resource_get[3], &resource_get[4] ) != 5 )
+	{
+	    printf(RED"Please enter five integers\n"WHITE);
+	    while(getchar() != '\n');
+	}
+    }
+    else
+    {
+	int max = 0;
+	for( int i = 0; i < 5; i++ )
+	{
+	    if( player_A->resource[i] == 0  )	get_choice = i;
+	    if( player_A->resource[i] > max )	{   max = player_A->resource[i];	    discard_choice = i;	}
+	}
+	resource_discard[ discard_choice ] = 1;
+	resource_get[ get_choice ] = 1;
     }
 
     // candidate decision
     int32_t candidate_decision = 1;
     
-    if( !is_resource_enough( candidate->resource, resource_get ) )
+    if( candidate->id == 1 )
     {
-	candidate_decision = 2;
-    }
-    if( candidate_decision != 2 )
-    {
-	int total_num = 0;
-	for( int i = 0; i < 5; i++ )
+	printf("@Player1, do you want to trade with player%d with giving one ", player_A->id );
+
+	switch( get_choice )
 	{
-	    total_num += player_A->resource[i];
+	    case BRICK:
+		printf("brick");
+		break;
+	    case LUMBER:
+		printf("lumber");
+		break;
+	    case WOOL:
+		printf("wool");
+		break;
+	    case GRAIN:
+		printf("grain");
+		break;
+	    case ORE:
+		printf("ore");
+		break;
 	}
-	if( total_num > 10 )	candidate_decision = 2;
+
+	printf(" and getting one " );
+
+	switch( discard_choice )
+	{
+	    case BRICK:
+		printf("brick");
+		break;
+	    case LUMBER:
+		printf("lumber");
+		break;
+	    case WOOL:
+		printf("wool");
+		break;
+	    case GRAIN:
+		printf("grain");
+		break;
+	    case ORE:
+		printf("ore");
+		break;
+	}
+
+	printf( " ( 1 for Yes, 2 for No ): " );
+	if( scanf("%d", &candidate_decision ) != 1 )
+	{
+	    printf(RED"Please enter one integers\n"WHITE);
+	    while(getchar() != '\n');
+	}
+	if( candidate_decision != 1 && candidate_decision != 2 )
+	{
+	    printf("You can only type 1 or 2!\n");
+	    return;
+	}
+    }
+    else
+    {
+	if( !is_resource_enough( candidate->resource, resource_get ) )
+	{
+	    candidate_decision = 2;
+	}
+	if( candidate_decision != 2 )
+	{
+	    int total_num = 0;
+	    for( int i = 0; i < 5; i++ )
+	    {
+		total_num += player_A->resource[i];
+	    }
+	    if( total_num > 10 )	candidate_decision = 2;
+	}
     }
 
     /* Trading */
