@@ -12,6 +12,17 @@
 
 ## 安裝
 
+由於此程式使用 SDL 作為顯示介面，因此在編譯之前您必須安裝 SDL2，若您的電腦使用的是 ubuntu，可以在終端機執行以下指令進行安裝：
+sudo apt-get install libsdl2-dev libsdl2-image-dev
+
+若您使用其他系統或在安裝上遇到問題，可以進入 SDL 官網查詢如何安裝，連結網址如下：
+https://www.libsdl.org/
+
+常見問題：Package sdl2_image was not found in the pkg-config search path.
+您可以嘗試執行 sudo find / -name "sdl2_image.pc" 搜尋電腦中是否有 sdl2_image.pc 檔案。有時它會叫做 SDL2_image.pc，您可以使用 sudo mv 來重新命名。
+
+完畢後，在終端機移動到程式所在目錄並輸入 make 進行編譯，之後執行 ./main 就可以開始進行遊戲了。
+
 ## 運行
 
 ## 遊戲指南
