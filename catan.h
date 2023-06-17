@@ -66,12 +66,12 @@
 #define GRAIN 3
 #define ORE 4
 
-// piece type
+// piece type  0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
 #define HILL 0
 #define FOREST 1
-#define MOUNTAIN 2
+#define MOUNTAIN 4
 #define FIELD 3
-#define PASTURE 4
+#define PASTURE 2
 #define DESERT 5
 
 #define PIECE_POINT 1
