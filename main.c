@@ -256,8 +256,9 @@ int main(){
                 robber_situation(map, id, renderer);
             }
             else{
-
             }
+            /* Trade stage */
+            trade_action( map, id );
         }
     }
 
