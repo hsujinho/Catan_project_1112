@@ -1230,18 +1230,21 @@ void trade_with_player( player *candidate, player *player_A )
     }
 
     // candidate decision
-    int32_t candidate_decision = 0;
-    printf("@Player%d, do you want to trade with player%d ( 1 for Yes, 2 for No ): ", candidate->id, player_A->id );
-    if( scanf("%d", &candidate_decision ) != 1 )
+    int32_t candidate_decision = 1;
+    
+    if( !is_resource_enough( candidate->resource, resource_get ) )
     {
-	printf(RED"Please enter one integers\n"WHITE);
-	while(getchar() != '\n');
+	candidate_decision = 2;
     }
-	if( candidate_decision != 1 && candidate_decision != 2 )
+    if( candidate_decision != 2 )
+    {
+	int total_num = 0;
+	for( int i = 0; i < 5; i++ )
 	{
-	    printf("You can only type 1 or 2!\n");
-	    return;
+	    total_num += player_A->resource[i];
 	}
+	if( total_num > 10 )	candidate_decision = 2;
+    }
 
     /* Trading */
     if( candidate_decision == 2 )
