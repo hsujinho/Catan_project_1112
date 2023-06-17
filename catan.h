@@ -377,9 +377,9 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
 
         
         if(pieces[i]->robberFlag == true){
-            rob_surface = IMG_Load("picture/grain.png");
+            rob_surface = IMG_Load("picture/CreeperFace.png");
             SDL_Texture *rob_texture = SDL_CreateTextureFromSurface(renderer, rob_surface);
-            SDL_Rect rob_rect = {x + NUM_OFFSET + 10, y + NUM_OFFSET + 10, NUM_SIZE, NUM_SIZE};
+            SDL_Rect rob_rect = {x + NUM_OFFSET + PIECE_SIZE / 4, y + NUM_OFFSET, NUM_SIZE - PIECE_SIZE / 10, NUM_SIZE - PIECE_SIZE / 10};
             SDL_RenderCopy(renderer, rob_texture, NULL, &rob_rect);
             SDL_DestroyTexture(rob_texture);
             SDL_FreeSurface(rob_surface);
@@ -390,14 +390,7 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
     }
 
     for(int i = 0; i < ROAD_NUM; i++){
-        int x1 = map->roads[i]->start.x;
-        int y1 = map->roads[i]->start.y;
-        int x2 = map->roads[i]->end.x;
-        int y2 = map->roads[i]->end.y;
-        int x = (x1 + x2) / 2;
-        int y = (y1 + y2) / 2;
-        x *= PIECE_SIZE / 2;
-        y *= PIECE_SIZE / 2;
+        int x, y;
 
         SDL_Surface *road_surface = NULL;
         if(roads[i]->dir == LD){
@@ -1092,8 +1085,6 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
     render_map(renderer, map);
 
     // let the player who roll the dice to choose a player to steal resource
-    // int target_id = steal_resource(id, players);
-    
     bool cannot_steal = true;
     for(int i = 0; i < PLAYER_NUM; i++){
         if(players[i]->id != id && resource_num(players[i]->id, map) > 0){
@@ -1109,27 +1100,37 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
     else{
         int target_id = 0;
         if(id == 1){
-
+            while(1){
+                printf("choose a player to steal resource\n");
+                int c = scanf("%d", &target_id);
+                if(c != 1 || target_id < 2 || target_id > 4 || resource_num(target_id, map) == 0){
+                    if(c != 1)
+                        printf("Please enter a number\n");
+                    else if(target_id < 2 || target_id > 4)
+                        printf("Please enter a number between 2 and 4\n");
+                    else if(resource_num(target_id, map) == 0)
+                        printf("Player %d has no resources, Please enter again\n", target_id);
+                    while(getchar() != '\n');
+                }
+                else
+                    break;
+            }
         }
         else{
             target_id = rand() % 4 + 1;
             while(target_id == id || resource_num(target_id, map) == 0)
                 target_id = rand() % 4 + 1;
-            
-            int resource_type = rand() % 5;
-            while(players[player_index(target_id, players)]->resource[resource_type] == 0)
-                resource_type = rand() % 5;
-            
-            players[player_index(id, players)]->resource[resource_type]++;
-            players[player_index(target_id, players)]->resource[resource_type]--;
-            
-            printf("Player %d steal resource from Player %d\n", id, target_id);
         }
-    }
-    
 
-    // steal resource
-    // steal_resource_action(id, target_id, players);
+        int resource_type = rand() % 5;
+        while(players[player_index(target_id, players)]->resource[resource_type] == 0)
+            resource_type = rand() % 5;
+        
+        players[player_index(id, players)]->resource[resource_type]++;
+        players[player_index(target_id, players)]->resource[resource_type]--;
+
+        printf("Player %d steal resource from Player %d\n", id, target_id);
+    }
 }
 
 int discard_resource(player **players, int player_id){
@@ -1196,8 +1197,6 @@ point move_robber(mapInfo *map, const int id){
     pieces[piece_index(p.x, p.y, pieces)]->robberFlag = true;
     return p;
 }
-
-
 
 bool is_resource_enough( int32_t *standard, int32_t *input )
 {
