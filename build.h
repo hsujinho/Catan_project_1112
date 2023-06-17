@@ -10,18 +10,18 @@ int get_land_p(mapInfo *map, const point point);
 int get_player_index(mapInfo *map, const int player_id);
 void print_test_building(mapInfo *map, const int ab[LAND_NUM]);
 void print_test_road(mapInfo *map, const int ab[ROAD_NUM]);
+void render_map_build(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NUM]);
+void render_map_road(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NUM], const point p);
 int build_road(mapInfo *map, const int player_id, const int index);
 int build_building(mapInfo *map, const int player_id, const int index);
-road *ai_choose_road(mapInfo *map, const int ab[ROAD_NUM], const int player_id);
-landbetween *ai_choose_building(mapInfo *map, const int ab[LAND_NUM]);
 point from_screen_to_coor(const int x1, const int y1);
 int take_initial_resource(mapInfo *map, const int player_id, const point p);
+road *ai_choose_road(mapInfo *map, const int ab[ROAD_NUM], const int player_id);
+landbetween *ai_choose_building(mapInfo *map, const int ab[LAND_NUM]);
 int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer);
 int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int player_id); //return 0 if build success; -1 if condition error; -2 if exit with no buinding; -3 if unknow error
 bool is_resource_enough_b(mapInfo *map, const int player_id, const int resource_need[5]);
 int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id);
-void render_map_road(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NUM], const point p);
-void render_map_build(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NUM]);
 
 int get_road_2p(mapInfo *map, const point p1, const point p2){
     for(int i = 0; i < ROAD_NUM; i++){

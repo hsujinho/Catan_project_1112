@@ -231,7 +231,6 @@ bool is_in_three_pieces_lands_pos(const int x, const int y);
 bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
 bool is_land_connect_other_building(mapInfo *map, const int x, const int y);
 bool is_robber_on_piece(mapInfo *map, const int x, const int y);
->>>>>>> origin/dev
 void free_player(player **players);
 void free_piece(piece **pieces);
 void free_landbetween(landbetween **lands);
@@ -1596,6 +1595,8 @@ void dfs(mapInfo *map, const int enter, const int graph[ROAD_NUM][ROAD_NUM], int
             dfs(map, i, graph, tmp, got_land, level + 1, max);
         }
     }
+}
+
 /*
  * monopoly_action - Take one certain resource from all the other players
  * @players:	all players
