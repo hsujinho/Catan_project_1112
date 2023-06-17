@@ -214,6 +214,7 @@ void knight_action();
 void monopoly_action( mapInfo *info, int id );
 //void free_road_building_action();
 int32_t year_of_plenty_action( mapInfo *info, int id );
+void dev_point_action( mapInfo *info, int id );
 bool is_in_three_pieces_lands_pos(const int x, const int y);
 bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
 bool is_land_connect_other_building(mapInfo *map, const int x, const int y);
@@ -1380,8 +1381,7 @@ void monopoly_action( mapInfo *info, int id )
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == MONOPOLY )
 	{
-	    list_del( pos ); // Where to go?
-	    free( pos );
+	    //list_del( pos ); // Where to go?
 	    card->used = true;
 	    break;
 	}
@@ -1463,8 +1463,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == YEAR_OF_PLENTY )
 	{
-	    list_del( pos ); // Where to go?
-	    free( pos );
+	    //list_del( pos ); // Where to go?
 	    card->used = true;
 	    break;
 	}
@@ -1472,4 +1471,40 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     }
 
     return 0;
+}
+
+/*
+ * dev_point_action - using point card, VP += 1
+ * @info: to get information of players
+ * @id  : one who use point card
+ * AI version: not related
+ * Warning: Where does the used devCard go -> free
+ * [ Compile: pass, Run: pass ]
+ */
+void dev_point_action( mapInfo *info, int id )
+{
+    player *player_A = info->players[ player_index( id, info->players ) ];
+
+    /* Point modification */
+    player_A->VP += 1;
+
+    /* Remove point_card from hand */
+    player_A->number_of_dev_card -= 1;
+    struct list_head *pos = player_A->devcard_list->next;
+    while( pos )
+    {
+	devcard *card = list_entry( pos, devcard, node );
+	if( card->type == VICTORY_POINT )
+	{
+	    list_del( pos ); // Where to go?
+	    card->used = true;
+	    break;
+	}
+	else	    pos = pos->next;
+    }
+
+    /* Action message */
+    printf("Player%d has used point card\n", player_A->id );
+
+    return;
 }
