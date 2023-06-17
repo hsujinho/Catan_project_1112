@@ -35,6 +35,7 @@ void print_simple_map(){
 
 int main(){ 
     printf("Welcome to Catan!\n");
+    PRESS_ENTER;
     print_simple_map();
 
     //declare variables
@@ -242,14 +243,17 @@ int main(){
         }
 
         for(int i = 0; i < PLAYER_NUM; i++){
-            sleep(2);   
+            // sleep(1);
+            sleep(1);   
             int id = players[i]->id;
             //roll dice and take resources
             int dice = roll_dice();
+            // int id = 1;
+            // int dice = 7;
             printf("Player %d rolls %d points\n", id, dice);
             take_resource(dice, map, resource, id);
-            if(id == 1){
-                
+            if(dice == 7){
+                robber_situation(map, id, renderer);
             }
             else{
 
