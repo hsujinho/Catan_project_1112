@@ -35,7 +35,12 @@ void print_simple_map(){
 
 int main(){ 
     printf("Welcome to Catan!\n");
+<<<<<<< HEAD
     //print_simple_map();
+=======
+    PRESS_ENTER;
+    print_simple_map();
+>>>>>>> origin/dev
 
     //declare variables
     player **players = NULL;
@@ -144,6 +149,10 @@ int main(){
 
                 }
                 else{
+<<<<<<< HEAD
+=======
+                    // TODO: let bot choose initial building
+>>>>>>> origin/dev
                     start_build(map, id, renderer);
                     render_map(renderer, map);
                 }
@@ -229,6 +238,10 @@ int main(){
                             render_map(renderer, map);
                         }
                         else{
+<<<<<<< HEAD
+=======
+                            // TODO: let bot choose initial building
+>>>>>>> origin/dev
                             start_build(map, players[j]->id, renderer);
                             render_map(renderer, map);
                         }
@@ -240,6 +253,7 @@ int main(){
         }
 
         for(int i = 0; i < PLAYER_NUM; i++){
+<<<<<<< HEAD
             sleep(2);   
             int id = players[i]->id;
             printf("Player %d turn...\n", id);
@@ -309,6 +323,25 @@ int main(){
         }
         scanf(" ");
         break;
+=======
+            // sleep(1);
+            sleep(1);   
+            int id = players[i]->id;
+            //roll dice and take resources
+            int dice = roll_dice();
+            // int id = 1;
+            // int dice = 7;
+            printf("Player %d rolls %d points\n", id, dice);
+            take_resource(dice, map, resource, id);
+            if(dice == 7){
+                robber_situation(map, id, renderer);
+            }
+            else{
+            }
+            /* Trade stage */
+            trade_action( map, id );
+        }
+>>>>>>> origin/dev
     }
 
     SDL_DestroyRenderer(renderer);
