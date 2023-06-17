@@ -738,6 +738,15 @@ int point_type(const int x, const int y){
     return -1;
 }
 
+int resource_num(const int id, mapInfo *map){
+    player **players = map->players;
+    int index = player_index(id, players);
+    int sum = 0;
+    for(int i = 0; i < 5; i++)
+        sum += players[index]->resource[i];
+    return sum;
+}
+
 landbetween **init_landbetween(){
     landbetween **lands = (landbetween **)malloc(sizeof(landbetween *) * LAND_NUM);
     for(int i = 0; i < LAND_NUM; i++){
@@ -1084,6 +1093,41 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
 
     // let the player who roll the dice to choose a player to steal resource
     // int target_id = steal_resource(id, players);
+    
+    bool cannot_steal = true;
+    for(int i = 0; i < PLAYER_NUM; i++){
+        if(players[i]->id != id && resource_num(players[i]->id, map) > 0){
+            cannot_steal = false;
+            break;
+        }
+    }
+
+    if(cannot_steal){
+        printf("Player %d cannot steal resources from other because no has resources\n");
+        return;
+    }
+    else{
+        int target_id = 0;
+        if(id == 1){
+
+        }
+        else{
+            target_id = rand() % 4 + 1;
+            while(target_id == id || resource_num(target_id, map) == 0)
+                target_id = rand() % 4 + 1;
+            
+            int resource_type = rand() % 5;
+            while(players[player_index(target_id, players)]->resource[resource_type] == 0)
+                resource_type = rand() % 5;
+            
+            players[player_index(id, players)]->resource[resource_type]++;
+            players[player_index(target_id, players)]->resource[resource_type]--;
+            
+            printf("Player %d steal resource from Player %d\n", id, target_id);
+        }
+    }
+    
+
     // steal resource
     // steal_resource_action(id, target_id, players);
 }
