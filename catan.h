@@ -1453,12 +1453,66 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
     return credit;
 }
 
-int knight_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
+int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
     render_map(renderer, map);
+    player **players = map->players;
+    piece **pieces = map->pieces;
     // move the robber
+    if(id == 1)
+        printf("choose a piece to move the robber\n");
 
-    //still resource
+    point p = move_robber(map, id);
+    printf("Player %d move the robber to (%d, %d)\n", id, p.x, p.y);
+    render_map(renderer, map);
 
+    // let the player who roll the dice to choose a player to steal resource
+    bool cannot_steal = true;
+    for(int i = 0; i < PLAYER_NUM; i++){
+        if(players[i]->id != id && resource_num(players[i]->id, map) > 0){
+            cannot_steal = false;
+            break;
+        }
+    }
+
+    if(cannot_steal){
+        printf("Player %d cannot steal resources from other because no has resources\n");
+        return;
+    }
+    else{
+        int target_id = 0;
+        if(id == 1){
+            while(1){
+                printf("choose a player to steal resource\n");
+                int c = scanf("%d", &target_id);
+                if(c != 1 || target_id < 2 || target_id > 4 || resource_num(target_id, map) == 0){
+                    if(c != 1)
+                        printf("Please enter a number\n");
+                    else if(target_id < 2 || target_id > 4)
+                        printf("Please enter a number between 2 and 4\n");
+                    else if(resource_num(target_id, map) == 0)
+                        printf("Player %d has no resources, Please enter again\n", target_id);
+                    while(getchar() != '\n');
+                }
+                else
+                    break;
+            }
+        }
+        else{
+            target_id = rand() % 4 + 1;
+            while(target_id == id || resource_num(target_id, map) == 0)
+                target_id = rand() % 4 + 1;
+        }
+
+        int resource_type = rand() % 5;
+        while(players[player_index(target_id, players)]->resource[resource_type] == 0)
+            resource_type = rand() % 5;
+        
+        players[player_index(id, players)]->resource[resource_type]++;
+        players[player_index(target_id, players)]->resource[resource_type]--;
+
+        printf("Player %d steal resource from Player %d\n", id, target_id);
+    }
+    players[player_index(id, players)]->number_of_knights ++;
     most_knight_check(renderer, map);
     render_map(renderer, map);
     return 0;
