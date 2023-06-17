@@ -250,9 +250,13 @@ int main(){
             take_resource(dice, map, resource, id);
             if(id == 1){
                 
+		/* Trade stage */
+		trade_action( map, id );
             }
             else{
 
+		/* Trade stage */
+		trade_action( map, id );
             }
         }
     }

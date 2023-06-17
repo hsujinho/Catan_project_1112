@@ -212,7 +212,7 @@ void trade_with_player( player *candidate, player *player_A );
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice );
 void knight_action();
 void monopoly_action( mapInfo *info, int id );
-void free_road_building_action();
+//void free_road_building_action();
 int32_t year_of_plenty_action( mapInfo *info, int id );
 bool is_in_three_pieces_lands_pos(const int x, const int y);
 bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
@@ -1087,47 +1087,50 @@ bool is_resource_enough( int32_t *standard, int32_t *input )
  */
 void trade_action( mapInfo *info, int32_t id )
 {
-    /* Select trade action: 1. with bank, 2. with player */
-    printf("Who do you want to trade with?\n");
-    if( id != 1 )	printf("1. Player1\n");
-    if( id != 2 )	printf("2. Player2\n");
-    if( id != 3 )	printf("3. Player3\n");
-    if( id != 4 )	printf("4. Player4\n");
-
-			printf("5. Bank\n");
-			printf("6. Quit\n");
-			printf("Your choice: ");
-    
-    int32_t choice = 0;
-
-    if( id == 1 ) // Player version
+    if( id != 1 ) // AI version
     {
+	printf("Quit trading\n");
+	return;
+    }
+
+    while( 1 ) // player version
+    {
+	/* Select trade action */
+	printf("Who do you want to trade with?\n");
+	printf("1. player2\n");
+	printf("2. player3\n");
+	printf("3. player4\n");
+	printf("4. Bank\n");
+	printf("5. Quit\n");
+	printf("Your choice: ");
+    
+	int32_t choice = 0;
+
 	if( scanf("%d", &choice ) != 1 )
 	{
 	    printf(RED"Please enter one integers\n"WHITE);
 	    while(getchar() != '\n');
 	}
-        if( choice < 1 || choice > 6 || choice == id )
-        {
-       	    printf("Your choice must be 1 - 6 and not the list index not on the list\n");
-	    return;
-        }
+	if( choice < 1 || choice > 5 )
+	{
+	    printf("Your choice must be 1 - 5\n");
+	    continue;
+	}
     
-        if( choice == 6 )	return;
-        if( choice == 5 )
-        {
+	if( choice == 5 )
+	{
+	    printf("Quit trading\n");
+	    break;
+	}
+	else if( choice == 4 )
+	{
 	    trade_with_bank( info->players[ player_index( id, info->players ) ], info->lands );
-        }
-        else
-        {
-	    trade_with_player( info->players[ player_index( choice, info->players ) ], info->players[ player_index( id, info->players ) ] );
-        }
+	}
+	else
+	{
+	    trade_with_player( info->players[ player_index( choice+1, info->players ) ], info->players[ player_index( id, info->players ) ] );
+	}
     }
-    else // AI version
-    {
-	choice = 6; // Default: no trade
-    }
-
     return;
 }
 
@@ -1167,7 +1170,7 @@ void trade_with_bank( player *player_A, landbetween **maps )
 	}
 	if( discard_choice == get_choice )
 	{
-	    printf("CONFLICT: What you want to get is the same as what you want to discard!\n");
+	    printf(RED"CONFLICT: What you want to get is the same as what you want to discard!\n"WHITE);
 	    return;
 	}
 
@@ -1185,15 +1188,15 @@ void trade_with_bank( player *player_A, landbetween **maps )
 	player_A->resource[ get_choice ] += 1;
 	resource[ discard_choice ] += credit;
 	resource[ get_choice ] -= 1;
-	printf("You have traded with bank!\n");
+	printf("Player%d has traded with bank!\n", player_A->id );
     }
     else if( !is_resource_enough( player_A->resource, resources_discard ) )
     {
-	printf("You don't have enough resource!\n");
+	printf("You don't have enough resource!\nTrade fail\n");
     }
     else if( !is_resource_enough( resource, resources_get ) )
     {
-	printf("The bank doesn't have enough resource!\n");
+	printf("The bank doesn't have enough resource!\nTrade fail\n");
     }
     
     return;
@@ -1209,7 +1212,7 @@ void trade_with_player( player *candidate, player *player_A )
 {
     // Resources
     int32_t resource_discard[5]  = {0};
-    printf("What do you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
+    printf("Please type number of resources you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
     if( scanf("%d %d %d %d %d", &resource_discard[0], &resource_discard[1], &resource_discard[2], &resource_discard[3], &resource_discard[4] ) != 5 )
     {
 	printf(RED"Please enter five integers\n"WHITE);
@@ -1241,7 +1244,7 @@ void trade_with_player( player *candidate, player *player_A )
     /* Trading */
     if( candidate_decision == 2 )
     {
-	printf("Player%d doesn't want to trade with you...\n", candidate->id );
+	printf("Player%d doesn't want to trade with you...\nTrade Fail\n", candidate->id );
 	return;
     }
 
@@ -1256,20 +1259,20 @@ void trade_with_player( player *candidate, player *player_A )
 		candidate->resource[i]  -= resource_get    [i];
 		candidate->resource[i]  += resource_discard[i];
 	    }
-	    printf("You have traded with player%d!\n", candidate->id );
+	    printf("Player%d has traded with player%d!\n", player_A->id, candidate->id );
 	}
 	else
 	{
-	    printf("Sorry! Player%d doesn't want to trade with you!\n", candidate->id );
+	    printf("Sorry! Player%d doesn't want to trade with you!\nTrade fail\n", candidate->id );
 	}
     }
     else if( !is_resource_enough( player_A->resource, resource_discard ) )
     {
-	printf("You don't have enough resource!\n");
+	printf("You don't have enough resource!\nTrade fail\n");
     }
     else if( !is_resource_enough( candidate->resource, resource_get ) )
     {
-	printf("Player%d does't have enough resource! Sorry!\n", candidate->id );
+	printf("Player%d does't have enough resource!\nTrade fail\n", candidate->id );
     }
     
     return;
@@ -1290,11 +1293,13 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
     {
 	if( maps[i]->type == get_choice + 4 && maps[i]->owner == player_A->id )
 	{
+	    printf("You can trade with port in credit of 2\n");
 	    credit = 2;
 	    break;
 	}
 	else if ( maps[i]->type == TYPE_PORT_ANY && maps[i]->owner == player_A->id )
 	{
+	    printf("You can trade with port in credit of 3\n");
 	    credit = 3;
 	}
     }
@@ -1344,6 +1349,28 @@ void monopoly_action( mapInfo *info, int id )
 	monoply->resource[ get_choice ] += info->players[i]->resource[ get_choice ];
 	info->players[i]->resource[ get_choice ] = 0;
     }
+
+    /* Action message */
+    printf("Player%d has used monopoly card and took away all ", monoply->id );
+    switch( get_choice )
+    {
+	case BRICK:
+	    printf("BRICK");
+	    break;
+	case LUMBER:
+	    printf("LUMBER");
+	    break;
+	case WOOL:
+	    printf("WOOL");
+	    break;
+	case GRAIN:
+	    printf("GRAIN");
+	    break;
+	case ORE:
+	    printf("ORE");
+	    break;
+    }
+    printf(" from your hand!\n");
 
     /* Devcard modification */
     monoply->number_of_dev_card -= 1;
@@ -1416,7 +1443,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 
     if( !is_resource_enough( resource, get ) )
     {
-	printf("The bank has not enough resources\n");
+	printf("The bank has not enough resources\nTrade fail\n");
 	return -1;
     }
     else
@@ -1425,6 +1452,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	resource[ get_choice2 ] -= 1;
 	info->players[ player_index( id, info->players ) ]->resource[ get_choice1 ] += 1;
 	info->players[ player_index( id, info->players ) ]->resource[ get_choice2 ] += 1;
+	printf("Player%d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
     }
 
     /* Devcard modification */
