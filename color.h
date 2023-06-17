@@ -8,8 +8,6 @@
 #define YELLOW "\033[0;33m"
 #define CYAN "\033[0;36m"
 #define MAGENTA "\033[0;35m"
-#define PURPLE "\033[0;35m"
-#define GREY "\033[0;37m"
 #define BLACK "\033[0;30m"
 #define WHITE "\033[0;37m"
 
@@ -21,6 +19,4 @@
 #define PRINT_YELLOW printf(YELLOW)
 #define PRINT_CYAN printf(CYAN)
 #define PRINT_MAGENTA printf(MAGENTA)
-#define PRINT_PURPLE printf(PURPLE)
-#define PRINT_GREY printf(GREY)
 #define PRINT_BLACK printf(BLACK)
