@@ -215,6 +215,7 @@ void monopoly_action( mapInfo *info, int id );
 //void free_road_building_action();
 int32_t year_of_plenty_action( mapInfo *info, int id );
 void dev_point_action( mapInfo *info, int id );
+void dev_card_action( mapInfo *info, int id );
 bool is_in_three_pieces_lands_pos(const int x, const int y);
 bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
 bool is_land_connect_other_building(mapInfo *map, const int x, const int y);
@@ -1334,18 +1335,19 @@ void monopoly_action( mapInfo *info, int id )
 		return;
 	    }
     }
-    else // AI version: pick the resource with least number
+    else // AI version: pick the resource with most number, mean AI
     {
+	int max_resource = 0;
 	for( int32_t i = 0; i < 5; i++ )
 	{
-	    if( info->players[ player_index( id, info->players ) ]->resource[i] < get_choice )	get_choice = i;
+	    if( info->players[ player_index( id, info->players ) ]->resource[i] > max_resource )	    get_choice = i;
 	}
     }
 
     player *monoply = info->players[ player_index( id, info->players ) ];
     for( int32_t i = 0; i < PLAYER_NUM; i++ )
     {
-	if( i + 1 == id )   continue;
+	if( info->players[i]->id == id )   continue;
 
 	monoply->resource[ get_choice ] += info->players[i]->resource[ get_choice ];
 	info->players[i]->resource[ get_choice ] = 0;
@@ -1397,38 +1399,49 @@ void monopoly_action( mapInfo *info, int id )
  * @id:		player who use the year_of_plenty_action card
  * AI version: done
  * Warning: Where does the used devCard go -> free
- * [ Compile: not yet, Run: not yet ]
+ * [ Compile: pass, Run: pass ]
  * */
 int32_t year_of_plenty_action( mapInfo *info, int id )
 {
-    int32_t get_choice1 = 30;
-    int32_t get_choice2 = 30;
+    int32_t get_choice1 = 0;
+    int32_t get_choice2 = 0;
     if( id == 1 ) // Player version
     {
-	printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-	if( scanf("%d %d", &get_choice1, &get_choice2 ) != 2 )
+	while( 1 )
 	{
-	    printf(RED"Please enter two integers\n"WHITE);
-	    while(getchar() != '\n');
-	}
-	    if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
+	    printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+	    if( scanf("%d %d", &get_choice1, &get_choice2 ) != 2 )
 	    {
-		printf("You can only type 0 - 4!\n");
-		return -1;
+		printf(RED"Please enter two integers\n"WHITE);
+		while(getchar() != '\n');
 	    }
+	    else if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
+	    {
+		printf(RED"You can only type 0 - 4!\n"WHITE);
+	    }
+	    else
+	    {
+		break;
+	    }
+	}
     }
     else // AI version: pick 2 least resources with least number
     {
+	int32_t min1 = 30;
+	int32_t min2 = 30;
 	for( int32_t i = 0; i < 5; i++ )
 	{
-	    if( info->players[ player_index( id, info->players ) ]->resource[i] < get_choice1 && info->players[ player_index( id, info->players ) ]->resource[i] < get_choice2 )
+	    if( info->players[ player_index( id, info->players ) ]->resource[i] < min1 && info->players[ player_index( id, info->players ) ]->resource[i] < min2 )
 	    {
+		min2 = min1;
+		min1 = info->players[ player_index( id, info->players ) ]->resource[i];
 		get_choice2 = get_choice1;
-		get_choice1 = info->players[ player_index( id, info->players ) ]->resource[i];
+		get_choice1 = i;
 	    }
-	    else if( info->players[ player_index( id, info->players ) ]->resource[i] > get_choice1 && info->players[ player_index( id, info->players ) ]->resource[i] < get_choice2 )
+	    else if( info->players[ player_index( id, info->players ) ]->resource[i] > min1 && info->players[ player_index( id, info->players ) ]->resource[i] < min2 )
 	    {
-		get_choice2 = info->players[ player_index( id, info->players ) ]->resource[i];
+		min2 = info->players[ player_index( id, info->players ) ]->resource[i];
+		get_choice2 = i;
 	    }
 	    else if( info->players[ player_index( id, info->players ) ]->resource[i] > get_choice1 && info->players[ player_index( id, info->players ) ]->resource[i] > get_choice2 )
 	    {
@@ -1438,8 +1451,8 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     }
 
     int32_t get[5] = {0};
-    get[ get_choice1 ] = 1;
-    get[ get_choice2 ] = 1;
+    get[ get_choice1 ] += 1;
+    get[ get_choice2 ] += 1;
 
     if( !is_resource_enough( resource, get ) )
     {
@@ -1505,6 +1518,136 @@ void dev_point_action( mapInfo *info, int id )
 
     /* Action message */
     printf("Player%d has used point card\n", player_A->id );
+
+    return;
+}
+
+/*
+ * dev_card_action - total actions when using dev_cards stage
+ * @info: total information of the game, mapinfo
+ * @id  : player who wants to use devcards
+ * Warning:
+ * 1. free_road_building needs to be modified
+ * 2. knight_action needs to be modified
+ *  AI version: not yet
+ * [ Compile: not yet, Run: not yet ]
+ */
+void dev_card_action( mapInfo *info, int id )
+{
+    player *player_A = info->players[ player_index( id, info->players ) ];
+
+    char choice = 0;
+    int32_t dev_choice = 0;
+    if( id == 1 ) // Player version
+    {
+	printf("Do you want to use devCards? ( y / n ): ");
+	while( 1 )
+	{
+	   if( scanf("%c", &choice ) != 1 )
+	   {
+		printf(RED"Please enter one character\n"WHITE);
+		while(getchar() != '\n');
+		printf("Do you want to use devCards? ( y / n ): ");
+		continue;
+	   }
+	   else if( choice != 'n' && choice != 'y' )
+	   {
+		printf(RED"You can only type 'y' or 'n' as choice\n"WHITE);
+		while(getchar() != '\n');
+		printf("Do you want to use devCards? ( y / n ): ");
+		continue;
+	   }
+	   else break;
+	}
+
+	if( choice == 'n' ) return;
+	else // choice == 'y'
+	{
+	   printf("Which card do you want to use?\n");
+	   printf("1) Knight action\n");
+	   printf("2) Monopoly action\n");
+	   printf("3) Free road building action\n");
+	   printf("4) Year of plenty action\n");
+	   printf("5) Point action\n");
+	   printf("6) Quit\n");
+	   printf("Your choice ( 1 - 6 ): ");
+	   while( 1 )
+	   {
+		if( scanf("%d", &dev_choice ) != 1 )
+		{
+		   printf(RED"Please enter one character\n"WHITE);
+		   while(getchar() != '\n');
+		   printf("Your choice ( 1 - 6 ): ");
+		   continue;
+		}
+		else if( dev_choice > 6 || dev_choice < 1 )
+		{
+		   printf(RED"Please enter an integer between 1 and 6\n"WHITE);
+		   while(getchar() != '\n');
+		   printf("Your choice ( 1 - 6 ): ");
+		   continue;
+		}
+		else break;
+	   }
+	}
+    }
+    else // AI version
+    {
+	if( !list_empty( player_A->devcard_list ) )
+	{
+	    devcard *card = list_entry( player_A->devcard_list->next, devcard, node );
+	    dev_choice = card->type + 1;
+	}
+	else
+	{
+	    dev_choice = 6;
+	}
+    }
+
+    /* Quit */
+    if( dev_choice == 6 ) return;
+
+    /* Check is can be used or not */
+    int32_t flag = 0;
+    struct list_head *pos = NULL;
+    list_for_each( pos, player_A->devcard_list )
+    {
+	devcard *card = list_entry( pos, devcard, node );
+	if( card->type == dev_choice - 1 && card->used == false ) {   flag = 1; break; }
+	else continue;
+    }
+
+    if( flag == 0 )
+    {
+	printf(RED"This card cannot be used\n"WHITE);
+	return;
+    }
+
+    /* Use devcard */
+    switch( dev_choice - 1 )
+    {
+	case KNIGHT:
+	   //knight_action(); // editing
+	   break;
+	case MONOPOLY:
+	   monopoly_action( info, id );
+	   break;
+	case FREE_ROAD_BUILDING:
+	   //free_road_building_action(); // editing
+	   break;
+	case YEAR_OF_PLENTY:
+	   if( year_of_plenty_action( info, id ) == -1 )
+	   {
+		printf(RED"FAIL\n"WHITE);
+	   }
+	   break;
+	case VICTORY_POINT:
+	   dev_point_action( info, id );
+	   break;
+	default:
+	   printf(RED"FAIL\n"WHITE);
+	   return;
+    }
 
     return;
 }
