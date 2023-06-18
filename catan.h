@@ -1445,7 +1445,7 @@ void trade_with_bank( player *player_A, landbetween **maps )
 	player_A->resource[ get_choice ] += 1;
 	resource[ discard_choice ] += credit;
 	resource[ get_choice ] -= 1;
-	printf("Player%d has traded with bank!\n", player_A->id );
+	printf("Player %d has traded with bank!\n", player_A->id );
     }
     else if( !is_resource_enough( player_A->resource, resources_discard ) )
     {
@@ -1507,7 +1507,7 @@ void trade_with_player( player *candidate, player *player_A )
     
     if( candidate->id == 1 )
     {
-	printf("@Player1, do you want to trade with player%d with giving one ", player_A->id );
+	printf("@Player1, do you want to trade with player %d with giving one ", player_A->id );
 
 	switch( get_choice )
 	{
@@ -1581,7 +1581,7 @@ void trade_with_player( player *candidate, player *player_A )
     /* Trading */
     if( candidate_decision == 2 )
     {
-	printf("Player%d doesn't want to trade with you...\nTrade Fail\n", candidate->id );
+	printf("Player %d doesn't want to trade with you...\nTrade Fail\n", candidate->id );
 	return;
     }
 
@@ -1596,11 +1596,11 @@ void trade_with_player( player *candidate, player *player_A )
 		candidate->resource[i]  -= resource_get    [i];
 		candidate->resource[i]  += resource_discard[i];
 	    }
-	    printf("Player%d has traded with player%d!\n", player_A->id, candidate->id );
+	    printf("Player %d has traded with player %d!\n", player_A->id, candidate->id );
 	}
 	else
 	{
-	    printf("Sorry! Player%d doesn't want to trade with you!\nTrade fail\n", candidate->id );
+	    printf("Sorry! Player %d doesn't want to trade with you!\nTrade fail\n", candidate->id );
 	}
     }
     else if( !is_resource_enough( player_A->resource, resource_discard ) )
@@ -1609,7 +1609,7 @@ void trade_with_player( player *candidate, player *player_A )
     }
     else if( !is_resource_enough( candidate->resource, resource_get ) )
     {
-	printf("Player%d does't have enough resource!\nTrade fail\n", candidate->id );
+	printf("Player %d does't have enough resource!\nTrade fail\n", candidate->id );
     }
     
     return;
@@ -1907,7 +1907,7 @@ void monopoly_action( mapInfo *info, int id )
     }
 
     /* Action message */
-    printf("Player%d has used monopoly card and took away all ", monoply->id );
+    printf("Player %d has used monopoly card and took away all ", monoply->id );
     switch( get_choice )
     {
 	case BRICK:
@@ -1930,8 +1930,8 @@ void monopoly_action( mapInfo *info, int id )
 
     /* Devcard modification: used status = true */
     monoply->number_of_dev_card -= 1;
-    struct list_head *pos = info->players[ player_index( id, info->players ) ]->devcard_list->next;
-    while( pos )
+    struct list_head *pos = NULL;
+    list_for_each( pos, monoply->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == MONOPOLY )
@@ -1939,7 +1939,6 @@ void monopoly_action( mapInfo *info, int id )
 	    card->used = true;
 	    break;
 	}
-	else	    pos = pos->next;
     }
 
     return;
@@ -2026,13 +2025,14 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	resource[ get_choice2 ] -= 1;
 	info->players[ player_index( id, info->players ) ]->resource[ get_choice1 ] += 1;
 	info->players[ player_index( id, info->players ) ]->resource[ get_choice2 ] += 1;
-	printf("Player%d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
+	printf("Player %d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
     }
 
     /* Devcard modification: used status = true */
     info->players[ player_index( id, info->players ) ]->number_of_dev_card -= 1;
-    struct list_head *pos = info->players[ player_index( id, info->players ) ]->devcard_list->next;
+    struct list_head *pos = NULL;
     while( pos )
+    list_for_each( pos, info->players[ player_index( id, info->players ) ]->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == YEAR_OF_PLENTY )
@@ -2040,7 +2040,6 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	    card->used = true;
 	    break;
 	}
-	else	    pos = pos->next;
     }
 
     return 0;
@@ -2073,7 +2072,7 @@ void dev_point_action( mapInfo *info, int id )
     }
 
     /* Action message */
-    printf("Player%d has used point card\n", player_A->id );
+    printf("Player %d has used point card\n", player_A->id );
 
     return;
 }
@@ -2172,25 +2171,16 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     switch( dev_choice - 1 )
     {
 	case KNIGHT:
-	   if( knight_action( renderer, info, id ) != 0 )
-	   {
-		printf(RED"FAIL\n"WHITE);
-	   }
+	   knight_action( renderer, info, id );
 	   break;
 	case MONOPOLY:
 	   monopoly_action( info, id );
 	   break;
 	case FREE_ROAD_BUILDING:
-	   if( free_road_building_action( renderer, info, id ) != 0 )
-	   {
-		printf(RED"FAIL\n"WHITE);
-	   }
+	   free_road_building_action( renderer, info, id );
 	   break;
 	case YEAR_OF_PLENTY:
-	   if( year_of_plenty_action( info, id ) == -1 )
-	   {
-		printf(RED"FAIL\n"WHITE);
-	   }
+	   year_of_plenty_action( info, id );
 	   break;
 	case VICTORY_POINT:
 	   dev_point_action( info, id );

@@ -245,7 +245,7 @@ int main(){
             most_knight_check(renderer, map);
             longest_road_check(renderer, map);
             if(victory_check(map) != 5){
-                printf("Player %d win!\n\n", victory_check(map));
+                printf("\nPlayer %d win!\n\n", victory_check(map));
                 return 0;
             }
 
