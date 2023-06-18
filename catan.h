@@ -1567,14 +1567,9 @@ void trade_with_player( player *candidate, player *player_A )
 	{
 	    candidate_decision = 2;
 	}
-	if( candidate_decision != 2 )
+	else
 	{
-	    int total_num = 0;
-	    for( int i = 0; i < 5; i++ )
-	    {
-		total_num += player_A->resource[i];
-	    }
-	    if( total_num > 10 )	candidate_decision = 2;
+	    candidate_decision = 1;
 	}
     }
 
