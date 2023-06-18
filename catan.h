@@ -256,7 +256,7 @@ void print_player(mapInfo *map){
 	list_for_each( pos, p[i]->devcard_list )
 	{
 	    devcard *card = list_entry( pos, devcard, node );
-	    if( card->type == VICTORY_POINT && card->used == true )	VP_print -= 1;
+	    if( card->type == VICTORY_POINT && card->used == false )	VP_print -= 1;
 	}
         printf("\nplayer %d: (VP: %d)\n", p[i]->id, VP_print );
         printf("resource: brick: %d, lumber: %d, wool: %d, grain: %d, ore: %d\n", p[i]->resource[0], p[i]->resource[1], p[i]->resource[2], p[i]->resource[3], p[i]->resource[4]);
@@ -1714,7 +1714,7 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
     list_for_each( pos,  map->players[ player_index( id, map->players ) ]->devcard_list)
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == KNIGHT )
+	if( card->type == KNIGHT && card->used == false )
 	{
 	    card->used = true;
 	    break;
@@ -1931,7 +1931,7 @@ void monopoly_action( mapInfo *info, int id )
     list_for_each( pos, monoply->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == MONOPOLY )
+	if( card->type == MONOPOLY && card->used == false )
 	{
 	    card->used = true;
 	    break;
@@ -2031,7 +2031,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     list_for_each( pos, info->players[ player_index( id, info->players ) ]->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == YEAR_OF_PLENTY )
+	if( card->type == YEAR_OF_PLENTY && card->used == false )
 	{
 	    card->used = true;
 	    break;
@@ -2059,7 +2059,7 @@ void dev_point_action( mapInfo *info, int id )
     list_for_each( pos, player_A->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == VICTORY_POINT )
+	if( card->type == VICTORY_POINT && card->used == false )
 	{
 	    card->used = true;
 	    break;
@@ -2074,7 +2074,21 @@ void dev_point_action( mapInfo *info, int id )
 
 int victory_check(mapInfo *map){
     for(int i = 0; i < PLAYER_NUM; i++){
-        if(map->players[i]->VP >= 10) return map->players[i]->id;
+        if(map->players[i]->VP >= 10){
+            int count = 0;
+            struct list_head *pos = NULL;
+            list_for_each( pos, map->players[i]->devcard_list )
+            {
+                devcard *card = list_entry( pos, devcard, node );
+                if( card->type == VICTORY_POINT)	count += 1;
+            }
+            printf("Player %d get 10 point: %d village, %d city, %d point card", map->players[i]->id, map->players[i]->number_of_building[1], map->players[i]->number_of_building[2], count);
+            if(map->players[i]->has_longest_road) printf(", has the LONGEST ROAD");
+            if(map->players[i]->has_most_knights) printf(", has the MOST KINGHT");
+            printf(".\n");
+            printf("Player %d win!\n\n", map->players[i]->id);
+            return map->players[i]->id;
+        }
     }
     return 5;
 }

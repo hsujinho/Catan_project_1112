@@ -804,13 +804,13 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
         }
         render_map(renderer, map);
         longest_road_check(renderer, map);
-        if(n == 1){
+        if(n == 0){
             map->players[get_player_index(map, player_id)]->number_of_dev_card -= 1;
             struct list_head *pos = NULL;
             list_for_each( pos,  map->players[ player_index( player_id, map->players ) ]->devcard_list)
             {
             devcard *card = list_entry( pos, devcard, node );
-            if( card->type == KNIGHT )
+            if( card->type == FREE_ROAD_BUILDING && card->used == false)
             {
                 card->used = true;
                 break;
@@ -1123,12 +1123,12 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
             int act4 = is_resource_enough_b(map, player_id, resource_need_card) && !list_empty(map->devcards);
 
             if(random()%10 < 2) act1 = 0;
-            if(random()%10 < 2) act2 = 0;
+            if(random()%10 < 1) act2 = 0;
             if(random()%10 < 1) act3 = 0;
-            if(random()%10 < 1) act4 = 0;
+            if(random()%10 < 2) act4 = 0;
             if(random()%100 < 2) return 0;
             
-            if(act2 && random()%10 < 4) act1 = 0;
+            if(act2 && random()%10 < 8) act1 = 0;
             if(act3 && random()%10 < 6) act2 = 0;
             if(act4 && random()%10 < 2){
                 act1 = 0;
