@@ -804,6 +804,20 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
         }
         render_map(renderer, map);
         longest_road_check(renderer, map);
+
+        if(n == 1){
+            map->players[get_player_index(map, player_id)]->number_of_dev_card -= 1;
+            struct list_head *pos = NULL;
+            list_for_each( pos,  map->players[ player_index( player_id, map->players ) ]->devcard_list)
+            {
+            devcard *card = list_entry( pos, devcard, node );
+            if( card->type == KNIGHT )
+            {
+                card->used = true;
+                break;
+            }
+            }
+        }
     }
     return 0;
 }
