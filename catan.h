@@ -2057,10 +2057,16 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     }
     else // AI version
     {
+	dev_choice = 6;
 	if( !list_empty( player_A->devcard_list ) )
 	{
-	    devcard *card = list_entry( player_A->devcard_list->next, devcard, node );
-	    dev_choice = card->type + 1;
+	    struct list_head *pos = NULL;
+	    list_for_each( pos, player_A->devcard_list )
+	    {
+		devcard *card = list_entry( pos, devcard, node );
+		if( card->used == false )   dev_choice = card->type + 1;
+		else			    continue;
+	    }
 	}
 	else
 	{
