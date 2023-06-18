@@ -245,14 +245,14 @@ int main(){
             most_knight_check(renderer, map);
             longest_road_check(renderer, map);
             if(victory_check(map) != 5){
-                printf("\nPlayer %d win!\n\n", victory_check(map));
+                printf("Player %d win!\n\n", victory_check(map));
                 return 0;
             }
 
             print_player(map);
             for(int i = 0; i < PLAYER_NUM; i++){   
                 int id = players[i]->id;
-                printf("Player %d turn...\n", id);
+                printf("\nPlayer %d turn...\n", id);
 
                 //roll dice and take resources
                 int dice = roll_dice();

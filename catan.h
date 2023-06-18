@@ -258,12 +258,14 @@ void print_player(mapInfo *map){
 	    devcard *card = list_entry( pos, devcard, node );
 	    if( card->type == VICTORY_POINT && card->used == true )	VP_print -= 1;
 	}
-        printf("player %d: (VP: %d)\n", p[i]->id, VP_print );
+        printf("\nplayer %d: (VP: %d)\n", p[i]->id, VP_print );
         printf("resource: brick: %d, lumber: %d, wool: %d, grain: %d, ore: %d\n", p[i]->resource[0], p[i]->resource[1], p[i]->resource[2], p[i]->resource[3], p[i]->resource[4]);
         printf("number of knights: %d\n", p[i]->number_of_knights);
         printf("length of road: %d\n", p[i]->length_of_road);
         printf("number of building: %d, %d, %d\n", p[i]->number_of_building[0], p[i]->number_of_building[1], p[i]->number_of_building[2]);
-        printf("number of dev card: %d\n\n", p[i]->number_of_dev_card);
+        printf("number of dev card: %d\n", p[i]->number_of_dev_card);
+        if(p[i]->has_longest_road) printf("has the LONGEST ROAD\n");
+        if(p[i]->has_most_knights) printf("has the MOST KINGHT\n");
     }
     sleep(2);
 }
