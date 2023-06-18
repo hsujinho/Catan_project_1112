@@ -258,12 +258,14 @@ void print_player(mapInfo *map){
 	    devcard *card = list_entry( pos, devcard, node );
 	    if( card->type == VICTORY_POINT && card->used == true )	VP_print -= 1;
 	}
-        printf("player %d: (VP: %d)\n", p[i]->id, VP_print );
+        printf("\nplayer %d: (VP: %d)\n", p[i]->id, VP_print );
         printf("resource: brick: %d, lumber: %d, wool: %d, grain: %d, ore: %d\n", p[i]->resource[0], p[i]->resource[1], p[i]->resource[2], p[i]->resource[3], p[i]->resource[4]);
         printf("number of knights: %d\n", p[i]->number_of_knights);
         printf("length of road: %d\n", p[i]->length_of_road);
         printf("number of building: %d, %d, %d\n", p[i]->number_of_building[0], p[i]->number_of_building[1], p[i]->number_of_building[2]);
-        printf("number of dev card: %d\n\n", p[i]->number_of_dev_card);
+        printf("number of dev card: %d\n", p[i]->number_of_dev_card);
+        if(p[i]->has_longest_road) printf("has the LONGEST ROAD\n");
+        if(p[i]->has_most_knights) printf("has the MOST KINGHT\n");
     }
     sleep(2);
 }
@@ -1445,7 +1447,7 @@ void trade_with_bank( player *player_A, landbetween **maps )
 	player_A->resource[ get_choice ] += 1;
 	resource[ discard_choice ] += credit;
 	resource[ get_choice ] -= 1;
-	printf("Player%d has traded with bank!\n", player_A->id );
+	printf("Player %d has traded with bank!\n", player_A->id );
     }
     else if( !is_resource_enough( player_A->resource, resources_discard ) )
     {
@@ -1507,7 +1509,7 @@ void trade_with_player( player *candidate, player *player_A )
     
     if( candidate->id == 1 )
     {
-	printf("@Player1, do you want to trade with player%d with giving one ", player_A->id );
+	printf("@Player1, do you want to trade with player %d with giving one ", player_A->id );
 
 	switch( get_choice )
 	{
@@ -1576,7 +1578,7 @@ void trade_with_player( player *candidate, player *player_A )
     /* Trading */
     if( candidate_decision == 2 )
     {
-	printf("Player%d doesn't want to trade with you...\nTrade Fail\n", candidate->id );
+	printf("Player %d doesn't want to trade with you...\nTrade Fail\n", candidate->id );
 	return;
     }
 
@@ -1591,11 +1593,11 @@ void trade_with_player( player *candidate, player *player_A )
 		candidate->resource[i]  -= resource_get    [i];
 		candidate->resource[i]  += resource_discard[i];
 	    }
-	    printf("Player%d has traded with player%d!\n", player_A->id, candidate->id );
+	    printf("Player %d has traded with player %d!\n", player_A->id, candidate->id );
 	}
 	else
 	{
-	    printf("Sorry! Player%d doesn't want to trade with you!\nTrade fail\n", candidate->id );
+	    printf("Sorry! Player %d doesn't want to trade with you!\nTrade fail\n", candidate->id );
 	}
     }
     else if( !is_resource_enough( player_A->resource, resource_discard ) )
@@ -1604,7 +1606,7 @@ void trade_with_player( player *candidate, player *player_A )
     }
     else if( !is_resource_enough( candidate->resource, resource_get ) )
     {
-	printf("Player%d does't have enough resource!\nTrade fail\n", candidate->id );
+	printf("Player %d does't have enough resource!\nTrade fail\n", candidate->id );
     }
     
     return;
@@ -1902,7 +1904,7 @@ void monopoly_action( mapInfo *info, int id )
     }
 
     /* Action message */
-    printf("Player%d has used monopoly card and took away all ", monoply->id );
+    printf("Player %d has used monopoly card and took away all ", monoply->id );
     switch( get_choice )
     {
 	case BRICK:
@@ -2020,7 +2022,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	resource[ get_choice2 ] -= 1;
 	info->players[ player_index( id, info->players ) ]->resource[ get_choice1 ] += 1;
 	info->players[ player_index( id, info->players ) ]->resource[ get_choice2 ] += 1;
-	printf("Player%d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
+	printf("Player %d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
     }
 
     /* Devcard modification: used status = true */
@@ -2065,7 +2067,7 @@ void dev_point_action( mapInfo *info, int id )
     }
 
     /* Action message */
-    printf("Player%d has used point card\n", player_A->id );
+    printf("Player %d has used point card\n", player_A->id );
 
     return;
 }

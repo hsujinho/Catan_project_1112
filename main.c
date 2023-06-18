@@ -252,7 +252,7 @@ int main(){
             print_player(map);
             for(int i = 0; i < PLAYER_NUM; i++){   
                 int id = players[i]->id;
-                printf("Player %d turn...\n", id);
+                printf("\nPlayer %d turn...\n", id);
 
                 //roll dice and take resources
                 int dice = roll_dice();
