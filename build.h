@@ -818,7 +818,6 @@ bool is_resource_enough_b(mapInfo *map, const int player_id, const int resource_
 }
 
 int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
-    printf("\n");
     if(player_id == 1) printf("Player %d, welcome to building action.\n", player_id);
     while(1){
         render_map(renderer, map);
@@ -1276,7 +1275,6 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                 }
             }
             else{
-                printf("\n");
                 return 0;
             }
         }

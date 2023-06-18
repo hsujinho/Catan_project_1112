@@ -1674,7 +1674,7 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
 
     if(cannot_steal){
         printf("Player %d cannot steal resources from other because no has resources\n", id);
-        return;
+        return -1;
     }
     else{
         int target_id = 0;
@@ -1711,6 +1711,19 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
         printf("Player %d steal resource from Player %d\n", id, target_id);
     }
     players[player_index(id, players)]->number_of_knights ++;
+
+    map->players[get_player_index(map, id)]->number_of_dev_card -= 1;
+    struct list_head *pos = NULL;
+    list_for_each( pos,  map->players[ player_index( id, map->players ) ]->devcard_list)
+    {
+	devcard *card = list_entry( pos, devcard, node );
+	if( card->type == KNIGHT )
+	{
+	    card->used = true;
+	    break;
+	}
+    }
+
     most_knight_check(renderer, map);
     render_map(renderer, map);
     return 0;
@@ -1741,7 +1754,7 @@ int most_knight_check(SDL_Renderer *renderer, mapInfo *map){
             map->players[i]->has_most_knights = 0;
         }
     }
-
+    
     render_map(renderer, map);
     return map->players[index]->id;
 }
