@@ -305,6 +305,7 @@ int main(){
                         dev_card_action( renderer, map, id );
 
                         select = random() % 4;
+                        if(select == 1 && rander() % 100 < 50) continue;
                         if(select == 0){
                             most_knight_check(renderer, map);
                             longest_road_check(renderer, map);
@@ -340,6 +341,7 @@ int main(){
                 printf("Player %d win!\n\n", victory_check(map));
                 return 0;
             }
+            sleep(2);
         }
         break;
     }
