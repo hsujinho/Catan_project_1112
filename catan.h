@@ -1154,7 +1154,7 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
                 }
                 if(target_id == 0){
                     printf("exit.\n\n");
-                    return 0;
+                    return;
                 }
                 if(target_id < 2 || target_id > 4){
                     printf(RED"\nInput error.\n\n"WHITE);
@@ -2182,7 +2182,24 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     int32_t dev_choice = 0;
     if( id == 1 ) // Player version
     {
-	   printf("Which card do you want to use?\n");
+        printf("Welcome to developement card action, now you have %d card(s): \n", player_A->number_of_dev_card);
+        struct list_head *pos = NULL;
+	    list_for_each( pos, player_A->devcard_list )
+	    {
+		devcard *card = list_entry( pos, devcard, node );
+		if( card->used == 1 ) continue;
+        else{
+            printf("%s card-", card_name[card->type]);
+            if( card->used == -1 ){
+                printf("unusable\n");
+            }
+            else{
+                printf("usable\n");
+            }
+        }
+	    }
+
+	   printf("\nWhich card do you want to use?\n");
 	   printf("\t1 Knight action\n");
 	   printf("\t2 Monopoly action\n");
 	   printf("\t3 Free road building action\n");

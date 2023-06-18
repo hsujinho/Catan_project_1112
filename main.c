@@ -264,13 +264,14 @@ int main(){
                 else take_resource(dice, map, resource, id);
                 render_map(renderer, map);
                 int select = 0;
-		int32_t dev_card_use_time = 0;
-		reset_dev_card_status( map, id ); // set dev_card->used = 0
+                int32_t dev_card_use_time = 0;
+                reset_dev_card_status( map, id ); // set dev_card->used = 0
                 while(1){
                     most_knight_check(renderer, map);
                     longest_road_check(renderer, map);
                     if(victory_check(map) != 5) return 0;
                     if(id == 1){
+                        // for(int x = 0; x < 5; x++) players[i]->resource[x] +=10;
                         printf("Input:\t0 to exit \n\t1 to enter trade action \n\t2 to enter build action \n\t3 to enter developement card action \n\t4 to view the infomation of all players \n");
                         printf("action:\t");
                         if(scanf("%d", &select)  != 1){

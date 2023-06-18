@@ -831,7 +831,7 @@ bool is_resource_enough_b(mapInfo *map, const int player_id, const int resource_
 }
 
 int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
-    if(player_id == 1) printf("Welcome to building action.\n", player_id);
+    if(player_id == 1) printf("Welcome to building action.\n");
     while(1){
         render_map(renderer, map);
         longest_road_check(renderer, map);
