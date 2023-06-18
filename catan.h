@@ -258,7 +258,7 @@ void print_player(mapInfo *map){
         printf("number of knights: %d\n", p[i]->number_of_knights);
         printf("length of road: %d\n", p[i]->length_of_road);
         printf("number of building: %d, %d, %d\n", p[i]->number_of_building[0], p[i]->number_of_building[1], p[i]->number_of_building[2]);
-        printf("number of dev card: %d\n", p[i]->number_of_dev_card);
+        printf("number of dev card: %d\n\n", p[i]->number_of_dev_card);
     }
 }
 

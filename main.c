@@ -248,6 +248,8 @@ int main(){
                 printf("Player %d win!\n\n", victory_check(map));
                 return 0;
             }
+
+            print_player(map);
             for(int i = 0; i < PLAYER_NUM; i++){   
                 int id = players[i]->id;
                 printf("Player %d turn...\n", id);
@@ -270,7 +272,7 @@ int main(){
                         return 0;
                     }
                     if(id == 1){
-                        printf("Input:\t0 to exit \n\t1 to enter trade action \n\t2 to enter build action \n\t3 to enter developement card action \n");
+                        printf("Input:\t0 to exit \n\t1 to enter trade action \n\t2 to enter build action \n\t3 to enter developement card action \n\t4 to view the infomation of all players \n");
                         printf("action:\t");
                         if(scanf("%d", &select)  != 1){
                             int c;
@@ -292,6 +294,9 @@ int main(){
                         }
                         else if(select == 3){ // card
                             dev_card_action( renderer, map, id );
+                        }
+                        else if(select == 4){ // card
+                            print_player( map );
                         }
                     }
                     else{
