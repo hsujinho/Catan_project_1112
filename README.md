@@ -231,3 +231,44 @@ typedef struct mapInfo{
     struct list_head *devcards; 
 }mapInfo;
 ```
+
+## 程式碼說明
+
+### 交易 function
+
+`void trade_action( mapInfo *info, int32_t id );`
+> Trade action list. After selection, `trade_action` will call corresponding functions
+- Input
+    - `info`	    : game information
+    - `id`	    : player id who wants to trade
+- Output
+    - No
+
+// trade with bank
+`void trade_with_bank( player *player_A, landbetween **maps );`
+> Trade with bank
+- Input
+    - `player_A`    : player who wants to trade
+    - `maps`	    : game information
+- Output
+    - No
+
+// trade with player
+`void trade_with_player( player *candidate, player *player_A );`
+> Trade with player
+- Input
+    - `player_A`    : player who wants to trade
+    - `candidate`   : player that player_A wants to trade with
+- Output
+    - No
+
+// trade with port
+`int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice );`
+> Find the exchange rate `player_A` can trade with bank
+- Input
+    - `player_A`    : player who wants to trade
+    - `maps`	    : game information
+    - `get_choice`  : resource player_A wants to get
+- Return value
+    - The exchange rate if `player_A` has certain port
+    - If `player_A` has no port or related port, the return value is default to 4
