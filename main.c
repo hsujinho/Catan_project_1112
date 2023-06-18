@@ -242,12 +242,13 @@ int main(){
         }
 
         while(1){
+            most_knight_check(renderer, map);
+            longest_road_check(renderer, map);
             if(victory_check(map) != 5){
                 printf("Player %d win!\n\n", victory_check(map));
-                break;
+                return 0;
             }
-            for(int i = 0; i < PLAYER_NUM; i++){
-                sleep(2);   
+            for(int i = 0; i < PLAYER_NUM; i++){   
                 int id = players[i]->id;
                 printf("Player %d turn...\n", id);
 
@@ -260,11 +261,14 @@ int main(){
                 }
                 else take_resource(dice, map, resource, id);
                 render_map(renderer, map);
-
                 int select = 0;
                 while(1){
                     most_knight_check(renderer, map);
                     longest_road_check(renderer, map);
+                    if(victory_check(map) != 5){
+                        printf("Player %d win!\n\n", victory_check(map));
+                        return 0;
+                    }
                     if(id == 1){
                         printf("Input:\t0 to exit \n\t1 to enter trade action \n\t2 to enter build action \n\t3 to enter developement card action \n");
                         printf("action:\t");
@@ -287,43 +291,56 @@ int main(){
                             if(build_action(renderer, map, id) == -1) continue;
                         }
                         else if(select == 3){ // card
-
+                            dev_card_action( renderer, map, id );
                         }
                     }
                     else{
                         //ai select action
-                        trade_action( map, id );
                         if(build_action(renderer, map, id) == -1) continue;
+                        dev_card_action( renderer, map, id );
 
-                        select = random() %4;
+                        select = random() % 4;
 
                         if(select == 0){
                             most_knight_check(renderer, map);
                             longest_road_check(renderer, map);
                             printf("\n");
-                            break;
-                        }
-                        else if(select == 1){
-                            
-                        }
-                        else if(select == 2){
-                            if(build_action(renderer, map, id) == -1) continue;
-                        }
-                        else if(select == 3){
-
+                            if(select == 0){
+                                printf("Exit. \n\n");
+                                most_knight_check(renderer, map);
+                                longest_road_check(renderer, map);
+                                break;
+                            }
+                            else if(select == 1){ // trade
+                                trade_action( map, id );
+                            }
+                            else if(select == 2){ // build
+                                if(build_action(renderer, map, id) == -1) continue;
+                            }
+                            else if(select == 3){ // card
+                                dev_card_action( renderer, map, id );
+                            }
                         }
                     }
+                    most_knight_check(renderer, map);
+                    longest_road_check(renderer, map);
                     if(victory_check(map) != 5){
-                        break;
+                        printf("Player %d win!\n\n", victory_check(map));
+                        return 0;
                     }
                 }
+                most_knight_check(renderer, map);
+                longest_road_check(renderer, map);
                 if(victory_check(map) != 5){
-                    break;
+                    printf("Player %d win!\n\n", victory_check(map));
+                    return 0;
                 }
             }
+            most_knight_check(renderer, map);
+            longest_road_check(renderer, map);
             if(victory_check(map) != 5){
                 printf("Player %d win!\n\n", victory_check(map));
-                break;
+                return 0;
             }
         }
         break;
