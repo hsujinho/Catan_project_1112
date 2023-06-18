@@ -2083,6 +2083,7 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     list_for_each( pos, player_A->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
+	printf("Card->type = %d, card->used = %d\n", card->type, card->used );
 	if( card->type == dev_choice - 1 && card->used == false ) {   flag = 1; break; }
 	else continue;
     }
