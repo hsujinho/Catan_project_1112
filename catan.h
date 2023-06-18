@@ -1564,7 +1564,7 @@ void trade_with_player( player *candidate, player *player_A )
     
     if( candidate->id == 1 )
     {
-	printf(GREEN"@Player1, do you want to trade with player %d with giving one "WHITE, player_A->id );
+	printf(GREEN"@Player1, do you want to trade with player %d with giving one ", player_A->id );
 
 	switch( get_choice )
 	{
@@ -1606,7 +1606,7 @@ void trade_with_player( player *candidate, player *player_A )
 		break;
 	}
 
-	printf( " ( 1 for Yes, 2 for No ): " );
+	printf( " ( 1 for Yes, 2 for No ): "WHITE );
 	if( scanf("%d", &candidate_decision ) != 1 )
 	{
 	    printf(RED"\nPlease enter one integers\n\n"WHITE);
