@@ -10,6 +10,17 @@
 | 陳柏瑜 | 41047054S |
 | 洪維駿 | 40923205L |
 
+### 分工
+
+- 徐政皓
+  - 程式架構設計
+  - 地圖設計
+  - SDL 介面設計
+  - 遊戲初始化
+  - 盜賊相關功能
+- 陳柏瑜
+- 洪維駿
+
 ## 安裝
 
 由於此程式使用 SDL 作為顯示介面，因此在編譯之前您必須安裝 SDL2，若您的電腦使用的是 ubuntu，可以在終端機執行以下指令進行安裝：
@@ -28,9 +39,9 @@ https://www.libsdl.org/
     此程式預設在 Linux 平台執行，在其他作業系統執行可能會遇到其他問題
     若因此遇到問題，請試著尋找是否有相關需求程式、軟體尚未安裝
 
-完畢後，在終端機移動到程式所在目錄並輸入 `make` 進行編譯，之後執行 `./main` 就可以開始進行遊戲了。
-
 ## 運行
+
+完畢後，在終端機移動到程式所在目錄並輸入 `make` 進行編譯，之後執行 `./main` 就可以開始進行遊戲了。
 
 ## 遊戲指南
 
@@ -129,9 +140,67 @@ https://www.libsdl.org/
 
 ## 程式架構
 
-### 程式流程圖
+### structure
 
-### 程式架構圖
+```c
+// store the coordinate of a point
+typedef struct Point{
+    int x;
+    int y;
+}point;
 
-### 程式碼說明
+// store the information of a player
+typedef struct Player{
+    int id;                        
+    int VP;                         // victory point
+    int resource[5];                // 0: brick, 1: lumber, 2: wool, 3: grain, 4: ore
+    int number_of_knights;          
+    int length_of_road;
+    int number_of_building[3];      // 0: settlement, 1: city, 2: road
+    int number_of_dev_card;         
+    bool has_longest_road;
+    bool has_most_knights;
+    struct list_head *devcard_list; // list of devcard in player's hand
+}player;
 
+// store the information of a piece
+typedef struct Piece{
+    point p;            // coordinate of the piece
+    int eco_type;       // 0: hill, 1: forest, 2: pasture, 3: field, 4: mountain, 5: desert
+    int number;         // the point number of the piece
+    bool robberFlag;    // true: robber is on the piece, false: robber is not on the piece
+}piece;
+
+// store the information of a land between pieces
+typedef struct LandBetween{
+    point p;            // coordinate of the land between pieces
+    int type;           // type of port, or nothing special
+    bool has_building;  
+    int owner;          // owner of the building
+    int building;       // 0: settlement, 1: city
+}landbetween;
+
+// store the information of a road
+typedef struct Road{    
+    point start;    // coordinate of the start point (upper point)
+    point end;      // coordinate of the end point (lower point)
+    int owner;      // owner of the road
+    int dir;        // direction of the road, 0: left down, 1: right down, 2: down
+}road;
+
+// store the information of a development card
+typedef struct DevCard{
+    int type;               // 0: knight, 1: monopoly, 2: road building, 3: year of plenty, 4: victory point
+    bool used;              
+    struct list_head node;  // node of the list
+}devcard;
+
+// store the information of the map
+typedef struct mapInfo{
+    player **players;
+    piece **pieces;
+    landbetween **lands;
+    road **roads;
+    struct list_head *devcards; 
+}mapInfo;
+```
