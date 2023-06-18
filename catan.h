@@ -227,7 +227,7 @@ void monopoly_action( mapInfo *info, int id );
 //void free_road_building_action();
 int32_t year_of_plenty_action( mapInfo *info, int id );
 void dev_point_action( mapInfo *info, int id );
-void dev_card_action( mapInfo *info, int id );
+void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id );
 bool is_in_three_pieces_lands_pos(const int x, const int y);
 bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
 bool is_land_connect_other_building(mapInfo *map, const int x, const int y);
@@ -2008,7 +2008,7 @@ void dev_point_action( mapInfo *info, int id )
  *  AI version: not yet
  * [ Compile: not yet, Run: not yet ]
  */
-void dev_card_action( mapInfo *info, int id )
+void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 {
     player *player_A = info->players[ player_index( id, info->players ) ];
 
@@ -2016,29 +2016,6 @@ void dev_card_action( mapInfo *info, int id )
     int32_t dev_choice = 0;
     if( id == 1 ) // Player version
     {
-	printf("Do you want to use devCards? ( y / n ): ");
-	while( 1 )
-	{
-	   if( scanf("%c", &choice ) != 1 )
-	   {
-		printf(RED"Please enter one character\n"WHITE);
-		while(getchar() != '\n');
-		printf("Do you want to use devCards? ( y / n ): ");
-		continue;
-	   }
-	   else if( choice != 'n' && choice != 'y' )
-	   {
-		printf(RED"You can only type 'y' or 'n' as choice\n"WHITE);
-		while(getchar() != '\n');
-		printf("Do you want to use devCards? ( y / n ): ");
-		continue;
-	   }
-	   else break;
-	}
-
-	if( choice == 'n' ) return;
-	else // choice == 'y'
-	{
 	   printf("Which card do you want to use?\n");
 	   printf("1) Knight action\n");
 	   printf("2) Monopoly action\n");
@@ -2065,7 +2042,6 @@ void dev_card_action( mapInfo *info, int id )
 		}
 		else break;
 	   }
-	}
     }
     else // AI version
     {
@@ -2103,13 +2079,19 @@ void dev_card_action( mapInfo *info, int id )
     switch( dev_choice - 1 )
     {
 	case KNIGHT:
-	   //knight_action(); // editing
+	   if( knight_action( renderer, info, id ) != 0 )
+	   {
+		printf(RED"FAIL\n"WHITE);
+	   }
 	   break;
 	case MONOPOLY:
 	   monopoly_action( info, id );
 	   break;
 	case FREE_ROAD_BUILDING:
-	   //free_road_building_action(); // editing
+	   if( free_road_building_action( renderer, info, id ) != 0 )
+	   {
+		printf(RED"FAIL\n"WHITE);
+	   }
 	   break;
 	case YEAR_OF_PLENTY:
 	   if( year_of_plenty_action( info, id ) == -1 )

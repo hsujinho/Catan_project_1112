@@ -281,7 +281,7 @@ int main(){
                         if(build_action(renderer, map, id) == -1) continue;
                     }
                     else if(select == 3){ // card
-
+			dev_card_action( renderer, map, id );
                     }
                 }
                 else{
@@ -300,6 +300,7 @@ int main(){
                         if(build_action(renderer, map, id) == -1) continue;
                     }
                     else if(select == 3){
+			dev_card_action( renderer, map, id );
 
                     }
                 }
