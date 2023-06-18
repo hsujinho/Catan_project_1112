@@ -249,9 +249,7 @@ void print_test_road(mapInfo *map, const int ab[ROAD_NUM]){
 
 void render_map_build(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NUM]){
     render_map(renderer, map);
-    piece **pieces = map->pieces;
     landbetween **lands = map->lands;
-    road **roads = map->roads;
         for(int i = 0; i < 6; i++){
         int x = 0;
         int y = i*2 + 1;
@@ -310,9 +308,7 @@ void render_map_build(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NU
 
 void render_map_road(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NUM], const point p){
     render_map(renderer, map);
-    piece **pieces = map->pieces;
     landbetween **lands = map->lands;
-    road **roads = map->roads;
         for(int i = 0; i < 6; i++){
         int x = 0;
         int y = i*2 + 1;

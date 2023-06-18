@@ -241,10 +241,30 @@ void free_landbetween(landbetween **lands);
 void free_road(road **roads);
 void free_devcard(struct list_head *devcards);
 
+int get_road_2p(mapInfo *map, const point p1, const point p2);
+int get_land_p(mapInfo *map, const point point);
+int get_player_index(mapInfo *map, const int player_id);
+void print_test_building(mapInfo *map, const int ab[LAND_NUM]);
+void print_test_road(mapInfo *map, const int ab[ROAD_NUM]);
+void render_map_build(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NUM]);
+void render_map_road(SDL_Renderer *renderer, mapInfo *map, const int ab[LAND_NUM], const point p);
+int build_road(mapInfo *map, const int player_id, const int index);
+int build_building(mapInfo *map, const int player_id, const int index);
+point from_screen_to_coor(const int x1, const int y1);
+int take_initial_resource(mapInfo *map, const int player_id, const point p);
+road *ai_choose_road(mapInfo *map, const int ab[ROAD_NUM], const int player_id);
+landbetween *ai_choose_building(mapInfo *map, const int ab[LAND_NUM]);
+int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer);
+int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int player_id); //return 0 if build success; -1 if condition error; -2 if exit with no buinding; -3 if unknow error
+bool is_resource_enough_b(mapInfo *map, const int player_id, const int resource_need[5]);
+int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id);
+
+
 void render_map_piece_num(SDL_Renderer *renderer, mapInfo *map);
 int most_knight_check(SDL_Renderer *renderer, mapInfo *map);
 int take_graph_array(mapInfo *map, const int id, int a[ROAD_NUM][ROAD_NUM]);
 int count_graph_road(mapInfo *map, const int graph[ROAD_NUM][ROAD_NUM]);
+void dfs(mapInfo *map, const int enter, const int graph[ROAD_NUM][ROAD_NUM], int got_road[ROAD_NUM], int got_land[LAND_NUM], const int level, int *max);
 
 void print_player(mapInfo *map);
 
@@ -257,7 +277,7 @@ void print_player(mapInfo *map){
 	list_for_each( pos, p[i]->devcard_list )
 	{
 	    devcard *card = list_entry( pos, devcard, node );
-	    if( card->type == VICTORY_POINT && card->used == -1 || card->used == 0 )	VP_print -= 1;
+	    if( card->type == VICTORY_POINT && (card->used == -1 || card->used == 0) )	VP_print -= 1;
 	}
         printf(YELLOW"\nplayer %d: (VP: %d)\n"WHITE, p[i]->id, VP_print );
         printf("resource: brick: %d, lumber: %d, wool: %d, grain: %d, ore: %d\n", p[i]->resource[0], p[i]->resource[1], p[i]->resource[2], p[i]->resource[3], p[i]->resource[4]);
@@ -1103,7 +1123,6 @@ void free_devcard(struct list_head *devcards){
 
 void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
     player **players = map->players;
-    piece **pieces = map->pieces;
     printf("\nEnter robber situation.\n");
 
     // let all players discard resource
@@ -1239,6 +1258,7 @@ int discard_resource(player **players, int player_id){
             resource[i] += decide[i];   
         }
     }
+    return 0;
 }
 
 void render_map_piece_num(SDL_Renderer *renderer, mapInfo *map){
@@ -1700,7 +1720,6 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
 int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
     render_map(renderer, map);
     player **players = map->players;
-    piece **pieces = map->pieces;
     
     // move the robber
     if(id == 1) render_map_piece_num(renderer, map);
@@ -1729,11 +1748,11 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
     }
     if(cannot_steal){
         printf(RED"Player %d cannot steal resources from other because no has resources\n"WHITE, id);
-        return;
+        return 0;
     }
     if(neighbor_player[0] == 0){
         if(id == 1)printf(RED"\nYou can steal from no one.\n\n"WHITE);
-        return;
+        return 0;
     }
     else{
         int target_id = 0;
@@ -1801,7 +1820,7 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
 
 int most_knight_check(SDL_Renderer *renderer, mapInfo *map){
     render_map(renderer, map);
-    int index = 5, max_knight = 0;
+    int index = 5;
     for(int i = 0; i < PLAYER_NUM; i++){
         if(map->players[i]->has_most_knights) index = i;
     }
@@ -1837,7 +1856,7 @@ int longest_road_check(SDL_Renderer *renderer, mapInfo *map){
         map->players[i]->length_of_road = count_graph_road(map, a);
     }
 
-    int index = 5, max_road = 0;
+    int index = 5;
     for(int i = 0; i < PLAYER_NUM; i++){
         if(map->players[i]->has_longest_road) index = i;
     }
@@ -1910,7 +1929,7 @@ void dfs(mapInfo *map, const int enter, const int graph[ROAD_NUM][ROAD_NUM], int
             int flag = 0;
             for(int j = 0; j < LAND_NUM; j++){
                 if(got_land[j] == 0) continue;
-                if((map->roads[i]->start.x == map->lands[j]->p.x && map->roads[i]->start.y == map->lands[j]->p.y) || map->roads[i]->end.x == map->lands[j]->p.x && map->roads[i]->end.y == map->lands[j]->p.y){
+                if((map->roads[i]->start.x == map->lands[j]->p.x && map->roads[i]->start.y == map->lands[j]->p.y) || (map->roads[i]->end.x == map->lands[j]->p.x && map->roads[i]->end.y == map->lands[j]->p.y)){
                     if(flag == 0) flag = 1;
                     else flag = 0;
                 }
@@ -2178,7 +2197,6 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 {
     player *player_A = info->players[ player_index( id, info->players ) ];
 
-    char choice = 0;
     int32_t dev_choice = 0;
     if( id == 1 ) // Player version
     {
