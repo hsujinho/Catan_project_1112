@@ -2171,25 +2171,16 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     switch( dev_choice - 1 )
     {
 	case KNIGHT:
-	   if( knight_action( renderer, info, id ) != 0 )
-	   {
-		printf(RED"FAIL\n"WHITE);
-	   }
+	   knight_action( renderer, info, id );
 	   break;
 	case MONOPOLY:
 	   monopoly_action( info, id );
 	   break;
 	case FREE_ROAD_BUILDING:
-	   if( free_road_building_action( renderer, info, id ) != 0 )
-	   {
-		printf(RED"FAIL\n"WHITE);
-	   }
+	   free_road_building_action( renderer, info, id );
 	   break;
 	case YEAR_OF_PLENTY:
-	   if( year_of_plenty_action( info, id ) == -1 )
-	   {
-		printf(RED"FAIL\n"WHITE);
-	   }
+	   year_of_plenty_action( info, id );
 	   break;
 	case VICTORY_POINT:
 	   dev_point_action( info, id );
