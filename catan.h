@@ -239,10 +239,19 @@ void free_road(road **roads);
 void free_devcard(struct list_head *devcards);
 
 void print_player(mapInfo *map);
+
 void print_player(mapInfo *map){
     player **p = map->players;
     for(int i = 0; i < PLAYER_NUM; i++){
-        printf("player %d: (VP: %d)\n", p[i]->id, p[i]->VP);
+	/* VP_print = VP_total - VP_dev_card_point */
+	int VP_print = p[i]->VP;
+	struct list_head *pos = NULL;
+	list_for_each( pos, p[i]->devcard_list )
+	{
+	    devcard *card = list_entry( pos, devcard, node );
+	    if( card->type == VICTORY_POINT && card->used == true )	VP_print -= 1;
+	}
+        printf("player %d: (VP: %d)\n", p[i]->id, VP_print );
         printf("resource: brick: %d, lumber: %d, wool: %d, grain: %d, ore: %d\n", p[i]->resource[0], p[i]->resource[1], p[i]->resource[2], p[i]->resource[3], p[i]->resource[4]);
         printf("number of knights: %d\n", p[i]->number_of_knights);
         printf("length of road: %d\n", p[i]->length_of_road);
