@@ -1862,8 +1862,8 @@ void monopoly_action( mapInfo *info, int id )
 
     /* Devcard modification: used status = true */
     monoply->number_of_dev_card -= 1;
-    struct list_head *pos = info->players[ player_index( id, info->players ) ]->devcard_list->next;
-    while( pos )
+    struct list_head *pos = NULL;
+    list_for_each( pos, monoply->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == MONOPOLY )
@@ -1871,7 +1871,6 @@ void monopoly_action( mapInfo *info, int id )
 	    card->used = true;
 	    break;
 	}
-	else	    pos = pos->next;
     }
 
     return;
@@ -1963,8 +1962,9 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 
     /* Devcard modification: used status = true */
     info->players[ player_index( id, info->players ) ]->number_of_dev_card -= 1;
-    struct list_head *pos = info->players[ player_index( id, info->players ) ]->devcard_list->next;
+    struct list_head *pos = NULL;
     while( pos )
+    list_for_each( pos, info->players[ player_index( id, info->players ) ]->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == YEAR_OF_PLENTY )
@@ -1972,7 +1972,6 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	    card->used = true;
 	    break;
 	}
-	else	    pos = pos->next;
     }
 
     return 0;
