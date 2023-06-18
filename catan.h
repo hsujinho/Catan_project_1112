@@ -1109,15 +1109,23 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
         discard_resource(players, players[i]->id);
     
     // move the robber
-    if(id == 1)
-        printf("choose a piece to move the robber\n");
-
-    render_map_piece_num(renderer, map);
+    if(id == 1) render_map_piece_num(renderer, map);
     point p = move_robber(map, id);
     printf("Player %d move the robber to (%d, %d)\n", id, p.y, p.x);
     render_map(renderer, map);
 
     // let the player who roll the dice to choose a player to steal resource
+    p = from_screen_to_coor_piece(p.x, p.y);
+
+    POINT_AROUND_PIECE(neighbor, p.x, p.y, 1);
+    int neighbor_player[5] = {0};
+    for(int i = 0; i < 6; i++){
+        if(map->lands[get_land_p(map, neighbor[i])]->owner != -1 && map->lands[get_land_p(map, neighbor[i])]->owner != id){
+            neighbor_player[map->lands[get_land_p(map, neighbor[i])]->owner] = 1;
+            neighbor_player[0] = 1;
+        }
+    }
+
     bool cannot_steal = true;
     for(int i = 0; i < PLAYER_NUM; i++){
         if(players[i]->id != id && resource_num(players[i]->id, map) > 0){
@@ -1125,7 +1133,6 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
             break;
         }
     }
-
     if(cannot_steal){
         printf("Player %d cannot steal resources from other because no has resources\n", id);
         return;
@@ -1134,24 +1141,38 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
         int target_id = 0;
         if(id == 1){
             while(1){
-                printf("\nChoose a player to steal resource\n");
-                int c = scanf("%d", &target_id);
-                if(c != 1 || target_id < 2 || target_id > 4 || resource_num(target_id, map) == 0){
-                    if(c != 1)
-                        printf("Please enter a number\n");
-                    else if(target_id < 2 || target_id > 4)
-                        printf("Please enter a number between 2 and 4\n");
-                    else if(resource_num(target_id, map) == 0)
-                        printf("Player %d has no resources, Please enter again\n", target_id);
+                printf("\tChoose a player to steal resource(enter 0 to give up)\n");
+                if(scanf("%d", &target_id) != 1){
                     while(getchar() != '\n');
+                    continue;
                 }
-                else
-                    break;
+                if(target_id == 0){
+                    printf("exit.\n\n");
+                    return 0;
+                }
+                if(target_id < 2 || target_id > 4){
+                    printf("Input error.\n");
+                    continue;
+                }
+                if(resource_num(target_id, map) == 0){
+                    printf("Player %d has no resources, Please enter again\n", target_id);
+                    continue;
+                }
+                if(neighbor_player[target_id] == 0){
+                    if(neighbor_player[0] == 0) printf("You can steal from no one.\n");
+                    else{
+                        printf("You can only steal from ");
+                        for(int i = 1; i < 5; i++) if(neighbor_player[i] == 1) printf("Player %d ", i);
+                        printf("\n");
+                    }
+                    continue;
+                }
+                break;
             }
         }
         else{
             target_id = rand() % 4 + 1;
-            while(target_id == id || resource_num(target_id, map) == 0)
+            while(target_id == id || resource_num(target_id, map) == 0 || neighbor_player[target_id] == 0)
                 target_id = rand() % 4 + 1;
         }
 
@@ -1162,7 +1183,7 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
         players[player_index(id, players)]->resource[resource_type]++;
         players[player_index(target_id, players)]->resource[resource_type]--;
 
-        printf("Player %d steal resource from Player %d\n", id, target_id);
+        printf("Player %d steal resource from Player %d\n\n", id, target_id);
     }
 }
 
@@ -1675,20 +1696,23 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
     piece **pieces = map->pieces;
     
     // move the robber
-    render_map_piece_num(renderer, map);
+    if(id == 1) render_map_piece_num(renderer, map);
     point p = move_robber(map, id);
     printf("Player %d move the robber to (%d, %d)\n", id, p.y, p.x);
     render_map(renderer, map);
 
-    // move the robber
-    // if(id == 1)
-    //     printf("choose a piece to move the robber\n");
-
-    // point p = move_robber(map, id);
-    // printf("Player %d move the robber to (%d, %d)\n", id, p.x, p.y);
-    // render_map(renderer, map);
-
     // let the player who roll the dice to choose a player to steal resource
+    p = from_screen_to_coor_piece(p.x, p.y);
+
+    POINT_AROUND_PIECE(neighbor, p.x, p.y, 1);
+    int neighbor_player[5] = {0};
+    for(int i = 0; i < 6; i++){
+        if(map->lands[get_land_p(map, neighbor[i])]->owner != -1 && map->lands[get_land_p(map, neighbor[i])]->owner != id){
+            neighbor_player[map->lands[get_land_p(map, neighbor[i])]->owner] = 1;
+            neighbor_player[0] = 1;
+        }
+    }
+
     bool cannot_steal = true;
     for(int i = 0; i < PLAYER_NUM; i++){
         if(players[i]->id != id && resource_num(players[i]->id, map) > 0){
@@ -1696,33 +1720,46 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
             break;
         }
     }
-
     if(cannot_steal){
         printf("Player %d cannot steal resources from other because no has resources\n", id);
-        return -1;
+        return;
     }
     else{
         int target_id = 0;
         if(id == 1){
             while(1){
-                printf("choose a player to steal resource\n");
-                int c = scanf("%d", &target_id);
-                if(c != 1 || target_id < 2 || target_id > 4 || resource_num(target_id, map) == 0){
-                    if(c != 1)
-                        printf("Please enter a number\n");
-                    else if(target_id < 2 || target_id > 4)
-                        printf("Please enter a number between 2 and 4\n");
-                    else if(resource_num(target_id, map) == 0)
-                        printf("Player %d has no resources, Please enter again\n", target_id);
+                printf("\tChoose a player to steal resource(enter 0 to give up)\n");
+                if(scanf("%d", &target_id) != 1){
                     while(getchar() != '\n');
+                    continue;
                 }
-                else
-                    break;
+                if(target_id == 0){
+                    printf("exit.\n\n");
+                    return 0;
+                }
+                if(target_id < 2 || target_id > 4){
+                    printf("Input error.\n");
+                    continue;
+                }
+                if(resource_num(target_id, map) == 0){
+                    printf("Player %d has no resources, Please enter again\n", target_id);
+                    continue;
+                }
+                if(neighbor_player[target_id] == 0){
+                    if(neighbor_player[0] == 0) printf("You can steal from no one.\n");
+                    else{
+                        printf("You can only steal from ");
+                        for(int i = 1; i < 5; i++) if(neighbor_player[i] == 1) printf("Player %d ", i);
+                        printf("\n");
+                    }
+                    continue;
+                }
+                break;
             }
         }
         else{
             target_id = rand() % 4 + 1;
-            while(target_id == id || resource_num(target_id, map) == 0)
+            while(target_id == id || resource_num(target_id, map) == 0 || neighbor_player[target_id] == 0)
                 target_id = rand() % 4 + 1;
         }
 
@@ -1733,7 +1770,7 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
         players[player_index(id, players)]->resource[resource_type]++;
         players[player_index(target_id, players)]->resource[resource_type]--;
 
-        printf("Player %d steal resource from Player %d\n", id, target_id);
+        printf("Player %d steal resource from Player %d\n\n", id, target_id);
     }
     players[player_index(id, players)]->number_of_knights ++;
 
