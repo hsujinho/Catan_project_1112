@@ -305,7 +305,7 @@ int main(){
                         dev_card_action( renderer, map, id );
 
                         select = random() % 4;
-                        if(select == 1 && rander() % 100 < 50) continue;
+                        if(select == 1 && (random() % 100) < 50) continue;
                         if(select == 0){
                             most_knight_check(renderer, map);
                             longest_road_check(renderer, map);
