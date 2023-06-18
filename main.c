@@ -252,7 +252,7 @@ int main(){
             for(int i = 0; i < PLAYER_NUM; i++){   
                 //if(players[i]->id == 1)continue;
                 int id = players[i]->id;
-                printf("\nPlayer %d turn...\n", id);
+                printf(BLUE"\nPlayer %d turn...\n"WHITE, id);
 
                 //roll dice and take resources
                 int dice = roll_dice();
@@ -294,6 +294,9 @@ int main(){
                         }
                         else if(select == 4){ // card
                             print_player( map );
+                        }
+                        else{
+                            printf(RED"\nInput error.\n\n"WHITE);
                         }
                     }
                     else{

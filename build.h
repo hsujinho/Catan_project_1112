@@ -579,7 +579,7 @@ landbetween *ai_choose_building(mapInfo *map, const int ab[LAND_NUM]){
 }
 
 int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer){
-    printf("Player %d turn...\n", player_id);
+    printf(BLUE"Player %d turn...\n"WHITE, player_id);
     int ability[LAND_NUM] = {0};
     for(int i = 0; i < LAND_NUM; i++){
         ability[i] = 1;
@@ -663,7 +663,7 @@ int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer){
                     continue;
                 }
                 p2 = from_screen_to_coor(x, y);
-                if(get_road_2p(map, p1, p2) == -1 || !ability_road[get_road_2p(map, p1, p2)]) printf("Location can not build, please try again.\n");
+                if(get_road_2p(map, p1, p2) == -1 || !ability_road[get_road_2p(map, p1, p2)]) printf(RED"\nLocation can not build, please try again.\n\n"WHITE);
             }
         }
         else{
@@ -691,7 +691,7 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
     for(int n = 0; n < 2; n++){
         render_map(renderer, map);
         if(map->players[get_player_index(map, player_id)]->number_of_building[ROAD] >= 15){
-            if(player_id == 1) printf("Road number can not over than 15. \n\n");
+            if(player_id == 1) printf(RED"\nRoad number can not over than 15. \n\n"WHITE);
             if(n == 0){
                 return -1;
             }
@@ -732,7 +732,7 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
             }
         }
         if(jump_flag){
-            if(player_id == 1)printf("There isn't any location can be built.\n\n");
+            if(player_id == 1)printf(RED"\nThere isn't any location can be built.\n\n"WHITE);
             if(n == 0){
                 return -1;
             }
@@ -790,7 +790,7 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
                 }
                 p2 = from_screen_to_coor(x, y);
                 printf("\n");
-                if(get_road_2p(map, p1, p2) == -1 || !ability[get_road_2p(map, p1, p2)]) printf("Location can not build, please try again.\n");
+                if(get_road_2p(map, p1, p2) == -1 || !ability[get_road_2p(map, p1, p2)]) printf(RED"\nLocation can not build, please try again.\n\n"WHITE);
             }
         }
         else{
@@ -799,7 +799,7 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
             p2 = tmp->end;
         }
         if(get_road_2p(map, p1, p2) == -1 || build_road(map, player_id, get_road_2p(map, p1, p2)) == -1){
-            printf("Build fail\n");
+            printf(RED"\nBuild fail\n\n"WHITE);
             return -3;
         }
         render_map(renderer, map);
@@ -831,7 +831,7 @@ bool is_resource_enough_b(mapInfo *map, const int player_id, const int resource_
 }
 
 int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
-    if(player_id == 1) printf("Player %d, welcome to building action.\n", player_id);
+    if(player_id == 1) printf("Welcome to building action.\n", player_id);
     while(1){
         render_map(renderer, map);
         longest_road_check(renderer, map);
@@ -852,11 +852,11 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
             else if(act == 1){
                 int resource_need[5] = {1, 1, 0, 0, 0};
                 if(!is_resource_enough_b(map, player_id, resource_need)){
-                    printf("Resource is not enough. \n\n");
+                    printf(RED"\nResource is not enough. \n\n"WHITE);
                     continue;
                 }
                 if(map->players[get_player_index(map, player_id)]->number_of_building[ROAD] >= 15){
-                    printf("Road number can not over than 15. \n\n");
+                    printf(RED"\nRoad number can not over than 15. \n\n"WHITE);
                     continue;
                 }
 
@@ -892,7 +892,7 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                     }
                 }
                 if(jump_flag){
-                    printf("There isn't any location can be built.\n\n");
+                    printf(RED"\nThere isn't any location can be built.\n\n"WHITE);
                     continue;
                 }
 
@@ -931,10 +931,10 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                     }
                     p2 = from_screen_to_coor(x, y);
                     printf("\n");
-                    if(get_road_2p(map, p1, p2) == -1 || !ability[get_road_2p(map, p1, p2)]) printf("Location can not build, please try again.\n");
+                    if(get_road_2p(map, p1, p2) == -1 || !ability[get_road_2p(map, p1, p2)]) printf(RED"\nLocation can not build, please try again.\n\n"WHITE);
                 }
                 if(get_road_2p(map, p1, p2) == -1 || !(ability[get_road_2p(map, p1, p2)])) printf("exit\n\n");
-                else if(build_road(map, player_id, get_road_2p(map, p1, p2)) == -1) printf("Build fail\n\n");
+                else if(build_road(map, player_id, get_road_2p(map, p1, p2)) == -1) printf(RED"\nBuild fail\n\n"WHITE);
                 else{
                     printf("Road build success\n\n");
                     for(int i = 0; i < 5; i++){
@@ -946,11 +946,11 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
             else if(act == 2){
                 int resource_need[5] = {1, 1, 1, 1, 0};
                 if(!is_resource_enough_b(map, player_id, resource_need)){
-                    printf("Resource is not enough. \n\n");
+                    printf(RED"\nResource is not enough. \n\n"WHITE);
                     continue;
                 }
                 if(map->players[get_player_index(map, player_id)]->number_of_building[SETTLEMENT] >= 5){
-                    printf("Village number can not over than 5. \n\n");
+                    printf(RED"\nVillage number can not over than 5. \n\n"WHITE);
                     continue;
                 }
 
@@ -993,7 +993,7 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                     }
                 }
                 if(jump_flag){
-                    printf("There isn't any location can be built.\n\n");
+                    printf(RED"\nThere isn't any location can be built.\n\n"WHITE);
                     continue;
                 }
 
@@ -1014,12 +1014,12 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                     printf("\n");
                     if(x == 0 && y == 0) break;
                     location = from_screen_to_coor(x, y);
-                    if(get_land_p(map, location) == -1 || !ability[get_land_p(map, location)]) printf("Location can not build, please try again.\n");
+                    if(get_land_p(map, location) == -1 || !ability[get_land_p(map, location)]) printf(RED"\nLocation can not build, please try again.\n\n"WHITE);
                 }
                 if(get_land_p(map, location) == -1 || !(ability[get_land_p(map, location)])) printf("exit\n\n");
-                else if(build_building(map, player_id, get_land_p(map, location)) == -1) printf("Build fail\n\n");
+                else if(build_building(map, player_id, get_land_p(map, location)) == -1) printf(RED"\nBuild fail\n\n"WHITE);
                 else{
-                    printf("Village build success\n\n");
+                    printf(YELLOW"Village build success\n\n"WHITE);
                     for(int i = 0; i < 5; i++){
                         map->players[get_player_index(map, player_id)]->resource[i] -= resource_need[i];
                         resource[i] += resource_need[i];
@@ -1029,11 +1029,11 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
             else if(act == 3){
                 int resource_need[5] = {0, 0, 0, 2, 3};
                 if(!is_resource_enough_b(map, player_id, resource_need)){
-                    printf("Resource is not enough. \n\n");
+                    printf(RED"\nResource is not enough. \n\n"WHITE);
                     continue;
                 }
                 if(map->players[get_player_index(map, player_id)]->number_of_building[CITY] >= 4){
-                    printf("Castle number can not over than 4. \n\n");
+                    printf(RED"\nCastle number can not over than 4. \n\n"WHITE);
                     continue;
                 }
 
@@ -1054,7 +1054,7 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                     }
                 }
                 if(jump_flag){
-                    printf("There isn't any location can be built.\n\n");
+                    printf(RED"\nThere isn't any location can be built.\n\n"WHITE);
                     continue;
                 }
 
@@ -1074,12 +1074,12 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                     printf("\n");
                     if(x == 0 && y == 0) break;
                     location = from_screen_to_coor(x, y);
-                    if(get_land_p(map, location) == -1 || !ability[get_land_p(map, location)]) printf("Location can not build, please try again.\n");
+                    if(get_land_p(map, location) == -1 || !ability[get_land_p(map, location)]) printf(RED"\nLocation can not build, please try again.\n\n"WHITE);
                 }
                 if(get_land_p(map, location) == -1 || !(ability[get_land_p(map, location)])) printf("exit\n\n");
-                else if(build_building(map, player_id, get_land_p(map, location)) == -1) printf("Build fail\n\n");
+                else if(build_building(map, player_id, get_land_p(map, location)) == -1) printf(RED"\nBuild fail\n\n"WHITE);
                 else{
-                    printf("City build success\n\n");
+                    printf(YELLOW"City build success\n\n"WHITE);
                     for(int i = 0; i < 5; i++){
                         map->players[get_player_index(map, player_id)]->resource[i] -= resource_need[i];
                         resource[i] += resource_need[i];
@@ -1089,11 +1089,11 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
             else if(act == 4){
                 int resource_need[5] = {0, 0, 1, 1, 1};
                 if(!is_resource_enough_b(map, player_id, resource_need)){
-                    printf("Resource is not enough. \n\n");
+                    printf(RED"\nResource is not enough. \n\n"WHITE);
                     continue;
                 } 
                 if(list_empty(map->devcards)){
-                    printf("Cards run out. \n\n");
+                    printf(RED"\nCards run out. \n\n"WHITE);
                     continue;
                 }
                 list_move(map->devcards->next, map->players[get_player_index(map, player_id)]->devcard_list);
@@ -1108,7 +1108,7 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                 }
             }
             else{
-                    printf("Input error. \n\n");
+                    printf(RED"\nInput error. \n\n"WHITE);
                     continue;
             }
         }
@@ -1233,7 +1233,7 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                 point location = ai_choose_building(map, ability)->p;
                 if(get_land_p(map, location) == -1 || !(ability[get_land_p(map, location)]) || build_building(map, player_id, get_land_p(map, location)) == -1) continue;
                 else{
-                    printf("Player %d build a village.\n", player_id);
+                    printf(YELLOW"Player %d build a village.\n"WHITE, player_id);
                     for(int i = 0; i < 5; i++){
                         map->players[get_player_index(map, player_id)]->resource[i] -= resource_need_village[i];
                         resource[i] += resource_need_village[i];
@@ -1266,7 +1266,7 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                 point location = ai_choose_building(map, ability)->p;
                 if(get_land_p(map, location) == -1 || !(ability[get_land_p(map, location)]) || build_building(map, player_id, get_land_p(map, location)) == -1) continue;
                 else{
-                    printf("Player %d build a city.\n", player_id);
+                    printf(YELLOW"Player %d build a city.\n"WHITE, player_id);
                     for(int i = 0; i < 5; i++){
                         map->players[get_player_index(map, player_id)]->resource[i] -= resource_need_castle[i];
                         resource[i] += resource_need_castle[i];

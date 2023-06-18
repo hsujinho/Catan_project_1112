@@ -258,7 +258,7 @@ void print_player(mapInfo *map){
 	    devcard *card = list_entry( pos, devcard, node );
 	    if( card->type == VICTORY_POINT && card->used == false )	VP_print -= 1;
 	}
-        printf("\nplayer %d: (VP: %d)\n", p[i]->id, VP_print );
+        printf(YELLOW"\nplayer %d: (VP: %d)\n"WHITE, p[i]->id, VP_print );
         printf("resource: brick: %d, lumber: %d, wool: %d, grain: %d, ore: %d\n", p[i]->resource[0], p[i]->resource[1], p[i]->resource[2], p[i]->resource[3], p[i]->resource[4]);
         printf("number of knights: %d\n", p[i]->number_of_knights);
         printf("length of road: %d\n", p[i]->length_of_road);
@@ -267,6 +267,7 @@ void print_player(mapInfo *map){
         if(p[i]->has_longest_road) printf("has the LONGEST ROAD\n");
         if(p[i]->has_most_knights) printf("has the MOST KINGHT\n");
     }
+    printf("\n");
     sleep(2);
 }
 
@@ -1102,7 +1103,7 @@ void free_devcard(struct list_head *devcards){
 void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
     player **players = map->players;
     piece **pieces = map->pieces;
-    printf("Enter robber situation.\n");
+    printf("\nEnter robber situation.\n");
 
     // let all players discard resource
     for(int i = 0; i < PLAYER_NUM; i++)
@@ -1134,14 +1135,18 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
         }
     }
     if(cannot_steal){
-        printf("Player %d cannot steal resources from other because no has resources\n", id);
+        printf(RED"Player %d cannot steal resources from other because no has resources\n"WHITE, id);
+        return;
+    }
+    if(neighbor_player[0] == 0){
+        if(id == 1)printf(RED"\nYou can steal from no one.\n\n"WHITE);
         return;
     }
     else{
         int target_id = 0;
         if(id == 1){
             while(1){
-                printf("\tChoose a player to steal resource(enter 0 to give up)\n");
+                printf("\tChoose a player to steal resource (enter 0 to give up): ");
                 if(scanf("%d", &target_id) != 1){
                     while(getchar() != '\n');
                     continue;
@@ -1151,19 +1156,19 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
                     return 0;
                 }
                 if(target_id < 2 || target_id > 4){
-                    printf("Input error.\n");
+                    printf(RED"\nInput error.\n\n"WHITE);
                     continue;
                 }
                 if(resource_num(target_id, map) == 0){
-                    printf("Player %d has no resources, Please enter again\n", target_id);
+                    printf(RED"\nPlayer %d has no resources, Please enter again\n\n"WHITE, target_id);
                     continue;
                 }
                 if(neighbor_player[target_id] == 0){
-                    if(neighbor_player[0] == 0) printf("You can steal from no one.\n");
+                    if(neighbor_player[0] == 0) printf(RED"\nYou can steal from no one.\n\n"WHITE);
                     else{
-                        printf("You can only steal from ");
+                        printf(RED"\nYou can only steal from ");
                         for(int i = 1; i < 5; i++) if(neighbor_player[i] == 1) printf("Player %d ", i);
-                        printf("\n");
+                        printf("\n\n"WHITE);
                     }
                     continue;
                 }
@@ -1183,7 +1188,7 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
         players[player_index(id, players)]->resource[resource_type]++;
         players[player_index(target_id, players)]->resource[resource_type]--;
 
-        printf("Player %d steal resource from Player %d\n\n", id, target_id);
+        printf("Player %d steal resource from Player %d\n", id, target_id);
     }
 }
 
@@ -1200,21 +1205,21 @@ int discard_resource(player **players, int player_id){
         // get the player's dicision of resource to discard
         int decide[5] = {0};
         int decide_num = (total + (total%2)) / 2;
-        if(player_id == 1) printf("Enter the resource to throw away: ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE)\n");
-        if(player_id == 1) printf("\tYou have %d brick, %d lumber, %d wool, %d grain, %d ore\n", players[player_index(player_id, players)]->resource[0], players[player_index(player_id, players)]->resource[1], players[player_index(player_id, players)]->resource[2], players[player_index(player_id, players)]->resource[3], players[player_index(player_id, players)]->resource[4]);
+        if(player_id == 1) printf("Enter the resource to throw away: ");
+        if(player_id == 1) printf("\n\tYou have %d brick, %d lumber, %d wool, %d grain, %d ore \n\t( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE)\n", players[player_index(player_id, players)]->resource[0], players[player_index(player_id, players)]->resource[1], players[player_index(player_id, players)]->resource[2], players[player_index(player_id, players)]->resource[3], players[player_index(player_id, players)]->resource[4]);
 
         for(int i = 0; i < decide_num; i++){
             if(player_id == 1){
                 int decide_type = -1;
                 while(1){
-                    printf("Resource:\t");
+                    printf("Resource: ");
                     if(scanf("%d", &decide_type) != 1)continue;
                     if(decide_type > 4 || decide_type < 0) continue;
                     if(players[player_index(player_id, players)]->resource[decide_type] > decide[decide_type]) break;
-                    else printf("Resource is not enough.\n");
+                    else printf(RED"\nResource is not enough.\n\n"WHITE);
                 }
                 decide[decide_type] ++;
-                printf("the resource you throw away: \n\t%d brick, %d lumber, %d wool, %d grain, %d ore\n", decide[0], decide[1], decide[2], decide[3], decide[4]);
+                printf("The resource you throw away: \n\t%d brick, %d lumber, %d wool, %d grain, %d ore\n", decide[0], decide[1], decide[2], decide[3], decide[4]);
             }
             else{
                 int resource_type = rand() % 5;
@@ -1225,6 +1230,7 @@ int discard_resource(player **players, int player_id){
                     resource_type = rand() % 5;
                 decide[resource_type] ++;
             }
+            if(player_id == 1) printf("\n");
         }
 
         for(int i = 0; i < 5; i++){
@@ -1351,22 +1357,22 @@ void trade_action( mapInfo *info, int32_t id )
 	while( 1 )
 	{
 	    /* Select trade action */
-	    printf("Who do you want to trade with?\n");
-	    printf("1. player2\n");
-	    printf("2. player3\n");
-	    printf("3. player4\n");
-	    printf("4. Bank\n");
-	    printf("5. Quit\n");
-	    printf("Your choice: ");
+	    printf("Welcome to trade action, who do you want to trade with?\n");
+	    printf("\t1 Player 2\n");
+	    printf("\t2 Player 3\n");
+	    printf("\t3 Player 4\n");
+	    printf("\t4 Bank\n");
+        printf("\t5 Exit\n");
+	    printf("action:\t");
 	
 	    if( scanf("%d", &choice ) != 1 )
 	    {
-		printf(RED"Please enter one integers\n"WHITE);
+		printf(RED"\nPlease enter one integers\n\n"WHITE);
 		while(getchar() != '\n');
 	    }
 	    if( choice < 1 || choice > 5 )
 	    {
-		printf("Your choice must be 1 - 5 and cannot be yourself\n");
+		printf(RED"\nour choice must be 1 - 5 and cannot be yourself\n\n"WHITE);
 		continue;
 	    }
 	    else    break;
@@ -1413,7 +1419,7 @@ void trade_action( mapInfo *info, int32_t id )
     
     if( choice == 5 )
     {
-	if( player_A->id == 1 )	    printf("Quit trading\n");
+	if( player_A->id == 1 )	    printf("Exit trading\n\n");
 	return;
     }
     else if( choice == 4 )
@@ -1446,29 +1452,29 @@ void trade_with_bank( player *player_A, landbetween **maps )
 	printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
 	if( scanf("%d", &get_choice ) != 1 )
 	{
-	    printf(RED"Please enter one integers\n"WHITE);
+	    printf(RED"\nPlease enter one integers\n\n"WHITE);
 	    while(getchar() != '\n');
 	}
 	    if( get_choice < 0 || get_choice > 4 )
 	    {
-		printf("You can only type 0 - 4!\n");
+		printf(RED"\nYou can only type 0 - 4\n\n"WHITE);
 		return;
 	    }
 
 	printf("What do you want to discard ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
 	if( scanf("%d", &discard_choice ) != 1 )
 	{
-	    printf(RED"Please enter one integers\n"WHITE);
+	    printf(RED"\nPlease enter one integers\n\n"WHITE);
 	    while(getchar() != '\n');
 	}
 	    if( discard_choice < 0 || discard_choice > 4 )
 	    {
-		printf("You can only type 0 - 4!\n");
+		printf(RED"\nYou can only type 0 - 4\n\n"WHITE);
 		return;
 	    }
 	    if( discard_choice == get_choice )
 	    {
-		printf(RED"CONFLICT: What you want to get is the same as what you want to discard!\n"WHITE);
+		printf(RED"\nCONFLICT: What you want to get is the same as what you want to discard!\n\n"WHITE);
 		return;
 	    }
     }
@@ -1500,11 +1506,11 @@ void trade_with_bank( player *player_A, landbetween **maps )
     }
     else if( !is_resource_enough( player_A->resource, resources_discard ) )
     {
-	printf("You don't have enough resource!\nTrade fail\n");
+	if(player_A->id == 1) printf(RED"\nYou don't have enough resource!\n\n"WHITE);
     }
     else if( !is_resource_enough( resource, resources_get ) )
     {
-	printf("The bank doesn't have enough resource!\nTrade fail\n");
+	if(player_A->id == 1) printf(RED"\nThe bank doesn't have enough resource!\n\n"WHITE);
     }
     
     return;
@@ -1530,14 +1536,14 @@ void trade_with_player( player *candidate, player *player_A )
 	printf("Please type number of resources you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
 	if( scanf("%d %d %d %d %d", &resource_discard[0], &resource_discard[1], &resource_discard[2], &resource_discard[3], &resource_discard[4] ) != 5 )
 	{
-	    printf(RED"Please enter five integers\n"WHITE);
+	    printf(RED"\nPlease enter five integers\n\n"WHITE);
 	    while(getchar() != '\n');
 	}
 
 	printf("What do you want to get ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
 	if( scanf("%d %d %d %d %d", &resource_get[0], &resource_get[1], &resource_get[2], &resource_get[3], &resource_get[4] ) != 5 )
 	{
-	    printf(RED"Please enter five integers\n"WHITE);
+	    printf(RED"\nPlease enter five integers\n\n"WHITE);
 	    while(getchar() != '\n');
 	}
     }
@@ -1558,7 +1564,7 @@ void trade_with_player( player *candidate, player *player_A )
     
     if( candidate->id == 1 )
     {
-	printf("@Player1, do you want to trade with player %d with giving one ", player_A->id );
+	printf(GREEN"@Player1, do you want to trade with player %d with giving one "WHITE, player_A->id );
 
 	switch( get_choice )
 	{
@@ -1603,12 +1609,12 @@ void trade_with_player( player *candidate, player *player_A )
 	printf( " ( 1 for Yes, 2 for No ): " );
 	if( scanf("%d", &candidate_decision ) != 1 )
 	{
-	    printf(RED"Please enter one integers\n"WHITE);
+	    printf(RED"\nPlease enter one integers\n\n"WHITE);
 	    while(getchar() != '\n');
 	}
 	if( candidate_decision != 1 && candidate_decision != 2 )
 	{
-	    printf("You can only type 1 or 2!\n");
+	    printf(RED"\nYou can only type 1 or 2!\n\n"WHITE);
 	    return;
 	}
     }
@@ -1642,20 +1648,20 @@ void trade_with_player( player *candidate, player *player_A )
 		candidate->resource[i]  -= resource_get    [i];
 		candidate->resource[i]  += resource_discard[i];
 	    }
-	    printf("Player %d has traded with player %d!\n", player_A->id, candidate->id );
+	    printf("Player %d has traded with player %d\n", player_A->id, candidate->id );
 	}
 	else
 	{
-	    printf("Sorry! Player %d doesn't want to trade with you!\nTrade fail\n", candidate->id );
+	    printf("Player %d rejects to trade with Player %d!\n", candidate->id, player_A->id );
 	}
     }
     else if( !is_resource_enough( player_A->resource, resource_discard ) )
     {
-	printf("You don't have enough resource!\nTrade fail\n");
+		if(player_A->id == 1) printf(RED"\nYou don't have enough resource!\n\n"WHITE);
     }
     else if( !is_resource_enough( candidate->resource, resource_get ) )
     {
-	printf("Player %d does't have enough resource!\nTrade fail\n", candidate->id );
+		if(player_A->id == 1) printf(RED"\nPlayer %d does't have enough resource!\n\n"WHITE, candidate->id );
     }
     
     return;
@@ -1721,14 +1727,18 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
         }
     }
     if(cannot_steal){
-        printf("Player %d cannot steal resources from other because no has resources\n", id);
+        printf(RED"Player %d cannot steal resources from other because no has resources\n"WHITE, id);
+        return;
+    }
+    if(neighbor_player[0] == 0){
+        if(id == 1)printf(RED"\nYou can steal from no one.\n\n"WHITE);
         return;
     }
     else{
         int target_id = 0;
         if(id == 1){
             while(1){
-                printf("\tChoose a player to steal resource(enter 0 to give up)\n");
+                printf("\tChoose a player to steal resource(enter 0 to give up): ");
                 if(scanf("%d", &target_id) != 1){
                     while(getchar() != '\n');
                     continue;
@@ -1738,20 +1748,17 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
                     return 0;
                 }
                 if(target_id < 2 || target_id > 4){
-                    printf("Input error.\n");
+                    printf(RED"\nInput error.\n\n"WHITE);
                     continue;
                 }
                 if(resource_num(target_id, map) == 0){
-                    printf("Player %d has no resources, Please enter again\n", target_id);
+                    printf(RED"\nPlayer %d has no resources, Please enter again\n\n"WHITE, target_id);
                     continue;
                 }
                 if(neighbor_player[target_id] == 0){
-                    if(neighbor_player[0] == 0) printf("You can steal from no one.\n");
-                    else{
-                        printf("You can only steal from ");
-                        for(int i = 1; i < 5; i++) if(neighbor_player[i] == 1) printf("Player %d ", i);
-                        printf("\n");
-                    }
+                    printf(RED"\nYou can only steal from ");
+                    for(int i = 1; i < 5; i++) if(neighbor_player[i] == 1) printf("Player %d ", i);
+                    printf("\n\n"WHITE);
                     continue;
                 }
                 break;
@@ -1770,7 +1777,7 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
         players[player_index(id, players)]->resource[resource_type]++;
         players[player_index(target_id, players)]->resource[resource_type]--;
 
-        printf("Player %d steal resource from Player %d\n\n", id, target_id);
+        printf("Player %d steal resource from Player %d\n", id, target_id);
     }
     players[player_index(id, players)]->number_of_knights ++;
 
@@ -1937,16 +1944,16 @@ void monopoly_action( mapInfo *info, int id )
     int32_t get_choice = 30;
     if( id == 1 ) // Player version
     {
-	printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+	printf("Which resource do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
 	if( scanf("%d", &get_choice ) != 1 )
 	{
-	    printf(RED"Please enter one integers\n"WHITE);
+	    printf(RED"\nPlease enter one integers\n\n"WHITE);
 	    while(getchar() != '\n');
 	}
 
 	    if( get_choice < 0 || get_choice > 4 )
 	    {
-		printf("You can only type 0 - 4!\n");
+		printf(RED"\nYou can only type 0 - 4!\n\n"WHITE);
 		return;
 	    }
     }
@@ -2025,12 +2032,12 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	    printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
 	    if( scanf("%d %d", &get_choice1, &get_choice2 ) != 2 )
 	    {
-		printf(RED"Please enter two integers\n"WHITE);
+		printf(RED"\nPlease enter two integers\n\n"WHITE);
 		while(getchar() != '\n');
 	    }
 	    else if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
 	    {
-		printf(RED"You can only type 0 - 4!\n"WHITE);
+		printf(RED"\nYou can only type 0 - 4!\n\n"WHITE);
 	    }
 	    else
 	    {
@@ -2043,7 +2050,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 
 	    if( !is_resource_enough( resource, get ) )
 	    {
-		printf("The bank has not enough resources\n");
+		printf(RED"\nThe bank has not enough resources\n\n"WHITE);
 	    }
 	}
     }
@@ -2078,7 +2085,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 
     if( !is_resource_enough( resource, get ) )
     {
-	printf("The bank has not enough resources\nTrade fail\n");
+	printf(RED"\nThe bank has not enough resources\n\n"WHITE);
 	return -1;
     }
     else
@@ -2177,25 +2184,25 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     if( id == 1 ) // Player version
     {
 	   printf("Which card do you want to use?\n");
-	   printf("1) Knight action\n");
-	   printf("2) Monopoly action\n");
-	   printf("3) Free road building action\n");
-	   printf("4) Year of plenty action\n");
-	   printf("5) Point action\n");
-	   printf("6) Quit\n");
-	   printf("Your choice ( 1 - 6 ): ");
+	   printf("\t1 Knight action\n");
+	   printf("\t2 Monopoly action\n");
+	   printf("\t3 Free road building action\n");
+	   printf("\t4 Year of plenty action\n");
+	   printf("\t5 Point action\n");
+	   printf("\t6 Exit\n");
+	   printf("action:\t");
 	   while( 1 )
 	   {
 		if( scanf("%d", &dev_choice ) != 1 )
 		{
-		   printf(RED"Please enter one character\n"WHITE);
+		   printf(RED"\nPlease enter one character\n\n"WHITE);
 		   while(getchar() != '\n');
 		   printf("Your choice ( 1 - 6 ): ");
 		   continue;
 		}
 		else if( dev_choice > 6 || dev_choice < 1 )
 		{
-		   printf(RED"Please enter an integer between 1 and 6\n"WHITE);
+		   printf(RED"\nPlease enter an integer between 1 and 6\n\n"WHITE);
 		   while(getchar() != '\n');
 		   printf("Your choice ( 1 - 6 ): ");
 		   continue;
@@ -2237,7 +2244,7 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 
     if( flag == 0 )
     {
-	printf(RED"This card cannot be used\n"WHITE);
+	printf(RED"\nThis card cannot be used\n\n"WHITE);
 	return;
     }
 
@@ -2260,7 +2267,7 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 	   dev_point_action( info, id );
 	   break;
 	default:
-	   printf(RED"FAIL\n"WHITE);
+	   printf(RED"\nFAIL\n\n"WHITE);
 	   return;
     }
 
