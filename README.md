@@ -242,38 +242,73 @@ typedef struct mapInfo{
 
 ## 程式碼說明
 
-### 交易 function
+### 交易
 
 `void trade_action( mapInfo *info, int32_t id );`
 > Trade action list. After selection, `trade_action` will call corresponding functions
 - Input
-    - `info`	    : game information
-    - `id`	    : player id who wants to trade
+  - `info`	    : game information
+  - `id`	    : player id who wants to trade
 - Output
-    - No
+  - No
 
 `void trade_with_bank( player *player_A, landbetween **maps );`
 > Trade with bank
 - Input
-    - `player_A`    : player who wants to trade
-    - `maps`	    : game information
+  - `player_A`    : player who wants to trade
+  - `maps`	    : game information
 - Output
-    - No
+  - No
 
 `void trade_with_player( player *candidate, player *player_A );`
 > Trade with player
 - Input
-    - `player_A`    : player who wants to trade
-    - `candidate`   : player that player_A wants to trade with
+  - `player_A`    : player who wants to trade
+  - `candidate`   : player that player_A wants to trade with
 - Output
-    - No
+  - No
 
 `int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice );`
-> Find the exchange rate `player_A` can trade with bank
+> Find the exchange rate `player_A` can trade with bank.
 - Input
-    - `player_A`    : player who wants to trade
-    - `maps`	    : game information
-    - `get_choice`  : resource player_A wants to get
+  - `player_A`    : player who wants to trade
+  - `maps`	    : game information
+  - `get_choice`  : resource player_A wants to get
 - Return value
-    - The exchange rate if `player_A` has certain port
-    - If `player_A` has no port or related port, the return value is default to 4
+  - The exchange rate if `player_A` has certain port
+  - If `player_A` has no port or related port, the return value is default to 4
+
+### 發展卡
+
+`void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id );`
+> devcard action list. After selection, `dev_card_action` will call corresponding functions.
+- Input
+  - `renderer`  : map
+  - `info`	    : game information
+  - `id`	      : player id who wants to trade
+- Output
+  - No
+
+`void monopoly_action( mapInfo *info, int id );`
+> Monopoly. Take away one certain resource from all the other player's hand.
+- Input
+  - `id`    : player id of player who wants to trade
+  - `info`	: game information
+- Output
+  - No
+
+`int32_t year_of_plenty_action( mapInfo *info, int id );`
+> Year of plenty. Freely get 2 resource from the bank.
+- Input
+  - `id`    : player id of player who wants to trade
+  - `info`	: game information
+- Output
+  - No
+
+`void dev_point_action( mapInfo *info, int id );`
+> Devcard point. Freely get one point.
+- Input
+  - `id`    : player id of player who wants to trade
+  - `info`	: game information
+- Output
+  - No
