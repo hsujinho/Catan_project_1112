@@ -1800,7 +1800,7 @@ void dfs(mapInfo *map, const int enter, const int graph[ROAD_NUM][ROAD_NUM], int
  * @id:		player who use monopoly_action
  * AI version: done
  * Warning: Where does the used devCard go -> free
- * [ Compile: not yet, Run: not yet ]
+ * [ Compile: pass, Run: pass ]
  */
 void monopoly_action( mapInfo *info, int id )
 {
@@ -1858,9 +1858,9 @@ void monopoly_action( mapInfo *info, int id )
 	    printf("ORE");
 	    break;
     }
-    printf(" from your hand!\n");
+    printf(" from others' hand!\n");
 
-    /* Devcard modification */
+    /* Devcard modification: used status = true */
     monoply->number_of_dev_card -= 1;
     struct list_head *pos = info->players[ player_index( id, info->players ) ]->devcard_list->next;
     while( pos )
@@ -1868,7 +1868,6 @@ void monopoly_action( mapInfo *info, int id )
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == MONOPOLY )
 	{
-	    //list_del( pos ); // Where to go?
 	    card->used = true;
 	    break;
 	}
@@ -1907,6 +1906,15 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	    else
 	    {
 		break;
+	    }
+
+	    int32_t get[5] = {0};
+	    get[ get_choice1 ] += 1;
+	    get[ get_choice2 ] += 1;
+
+	    if( !is_resource_enough( resource, get ) )
+	    {
+		printf("The bank has not enough resources\n");
 	    }
 	}
     }
@@ -1953,7 +1961,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	printf("Player%d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
     }
 
-    /* Devcard modification */
+    /* Devcard modification: used status = true */
     info->players[ player_index( id, info->players ) ]->number_of_dev_card -= 1;
     struct list_head *pos = info->players[ player_index( id, info->players ) ]->devcard_list->next;
     while( pos )
@@ -1961,7 +1969,6 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == YEAR_OF_PLENTY )
 	{
-	    //list_del( pos ); // Where to go?
 	    card->used = true;
 	    break;
 	}
@@ -1983,10 +1990,7 @@ void dev_point_action( mapInfo *info, int id )
 {
     player *player_A = info->players[ player_index( id, info->players ) ];
 
-    /* Point modification */
-    player_A->VP += 1;
-
-    /* Remove point_card from hand */
+    /* Modify used status to true */
     player_A->number_of_dev_card -= 1;
     struct list_head *pos = player_A->devcard_list->next;
     while( pos )
@@ -1994,7 +1998,6 @@ void dev_point_action( mapInfo *info, int id )
 	devcard *card = list_entry( pos, devcard, node );
 	if( card->type == VICTORY_POINT )
 	{
-	    list_del( pos ); // Where to go?
 	    card->used = true;
 	    break;
 	}
