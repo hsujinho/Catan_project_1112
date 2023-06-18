@@ -810,9 +810,9 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
             list_for_each( pos,  map->players[ player_index( player_id, map->players ) ]->devcard_list)
             {
             devcard *card = list_entry( pos, devcard, node );
-            if( card->type == FREE_ROAD_BUILDING && card->used == false)
+            if( card->type == FREE_ROAD_BUILDING && card->used == 0 )
             {
-                card->used = true;
+                card->used = 1;
                 break;
             }
             }

@@ -265,6 +265,7 @@ int main(){
                 render_map(renderer, map);
                 int select = 0;
 		int32_t dev_card_use_time = 0;
+		reset_dev_card_status( map, id ); // set dev_card->used = 0
                 while(1){
                     most_knight_check(renderer, map);
                     longest_road_check(renderer, map);

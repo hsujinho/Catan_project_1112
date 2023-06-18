@@ -149,7 +149,7 @@ typedef struct Road{
 
 typedef struct DevCard{
     int type;
-    bool used;
+    int32_t used; // -1: cannot use, 0-> not used, 1-> used
     struct list_head node;
 }devcard;
 
@@ -230,6 +230,7 @@ void monopoly_action( mapInfo *info, int id );
 int32_t year_of_plenty_action( mapInfo *info, int id );
 void dev_point_action( mapInfo *info, int id );
 void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id );
+void reset_dev_card_status( mapInfo *map, int32_t id );
 bool is_in_three_pieces_lands_pos(const int x, const int y);
 bool is_land_occupied(mapInfo *map, const int x, const int y, const int id);
 bool is_land_connect_other_building(mapInfo *map, const int x, const int y);
@@ -256,7 +257,7 @@ void print_player(mapInfo *map){
 	list_for_each( pos, p[i]->devcard_list )
 	{
 	    devcard *card = list_entry( pos, devcard, node );
-	    if( card->type == VICTORY_POINT && card->used == false )	VP_print -= 1;
+	    if( card->type == VICTORY_POINT && card->used == -1 || card->used == 0 )	VP_print -= 1;
 	}
         printf(YELLOW"\nplayer %d: (VP: %d)\n"WHITE, p[i]->id, VP_print );
         printf("resource: brick: %d, lumber: %d, wool: %d, grain: %d, ore: %d\n", p[i]->resource[0], p[i]->resource[1], p[i]->resource[2], p[i]->resource[3], p[i]->resource[4]);
@@ -957,7 +958,7 @@ struct list_head *init_devcard(){
             card->type = YEAR_OF_PLENTY;
         else
             card->type = VICTORY_POINT;
-        card->used = false;
+        card->used = -1;
         list_add_tail(&card->node, devcard_list);
     }
 
@@ -1786,9 +1787,9 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
     list_for_each( pos,  map->players[ player_index( id, map->players ) ]->devcard_list)
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == KNIGHT && card->used == false )
+	if( card->type == KNIGHT && card->used == 0 )
 	{
-	    card->used = true;
+	    card->used = 1;
 	    break;
 	}
     }
@@ -1936,7 +1937,6 @@ void dfs(mapInfo *map, const int enter, const int graph[ROAD_NUM][ROAD_NUM], int
  * @players:	all players
  * @id:		player who use monopoly_action
  * AI version: done
- * Warning: Where does the used devCard go -> free
  * [ Compile: pass, Run: pass ]
  */
 void monopoly_action( mapInfo *info, int id )
@@ -1997,15 +1997,15 @@ void monopoly_action( mapInfo *info, int id )
     }
     printf(" from others' hand!\n");
 
-    /* Devcard modification: used status = true */
+    /* Devcard modification: used status = 1 */
     monoply->number_of_dev_card -= 1;
     struct list_head *pos = NULL;
     list_for_each( pos, monoply->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == MONOPOLY && card->used == false )
+	if( card->type == MONOPOLY && card->used == 0 )
 	{
-	    card->used = true;
+	    card->used = 1;
 	    break;
 	}
     }
@@ -2097,15 +2097,15 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 	printf("Player %d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
     }
 
-    /* Devcard modification: used status = true */
+    /* Devcard modification: used status = 1 */
     info->players[ player_index( id, info->players ) ]->number_of_dev_card -= 1;
     struct list_head *pos = NULL;
     list_for_each( pos, info->players[ player_index( id, info->players ) ]->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == YEAR_OF_PLENTY && card->used == false )
+	if( card->type == YEAR_OF_PLENTY && card->used == 0 )
 	{
-	    card->used = true;
+	    card->used = 1;
 	    break;
 	}
     }
@@ -2118,22 +2118,21 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
  * @info: to get information of players
  * @id  : one who use point card
  * AI version: not related
- * Warning: Where does the used devCard go -> free
  * [ Compile: pass, Run: pass ]
  */
 void dev_point_action( mapInfo *info, int id )
 {
     player *player_A = info->players[ player_index( id, info->players ) ];
 
-    /* Modify used status to true */
+    /* Modify used status to 1 */
     player_A->number_of_dev_card -= 1;
     struct list_head *pos = NULL;
     list_for_each( pos, player_A->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == VICTORY_POINT && card->used == false )
+	if( card->type == VICTORY_POINT && card->used == 0 )
 	{
-	    card->used = true;
+	    card->used = 1;
 	    break;
 	}
     }
@@ -2219,7 +2218,7 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 	    list_for_each( pos, player_A->devcard_list )
 	    {
 		devcard *card = list_entry( pos, devcard, node );
-		if( card->used == false )   dev_choice = card->type + 1;
+		if( card->used == 0 )   dev_choice = card->type + 1;
 		else			    continue;
 	    }
 	}
@@ -2238,7 +2237,7 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     list_for_each( pos, player_A->devcard_list )
     {
 	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == dev_choice - 1 && card->used == false ) {   flag = 1; break; }
+	if( card->type == dev_choice - 1 && card->used == 0 ) {   flag = 1; break; }
 	else continue;
     }
 
@@ -2269,6 +2268,21 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 	default:
 	   printf(RED"\nFAIL\n\n"WHITE);
 	   return;
+    }
+
+    return;
+}
+
+
+void reset_dev_card_status( mapInfo *map, int32_t id ) // set dev_card->used = 0
+{
+    player *player_A = map->players[ player_index( id, map->players ) ];
+
+    struct list_head *pos = NULL;
+    list_for_each( pos, player_A->devcard_list )
+    {
+	devcard *card = list_entry( pos, devcard, node );
+	if( card->used == -1 )	card->used = 0;
     }
 
     return;
