@@ -1102,6 +1102,8 @@ void free_devcard(struct list_head *devcards){
 void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
     player **players = map->players;
     piece **pieces = map->pieces;
+    printf("Enter robber situation.\n");
+
     // let all players discard resource
     for(int i = 0; i < PLAYER_NUM; i++)
         discard_resource(players, players[i]->id);
@@ -1176,8 +1178,34 @@ int discard_resource(player **players, int player_id){
     else{
         // get the player's dicision of resource to discard
         int decide[5] = {0};
-        // resource_to_discard(p, &decide);
-        // discard the resource and add to the bank
+        int decide_num = (total + (total%2)) / 2;
+        if(player_id == 1) printf("Enter the resource to throw away: ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE)\n");
+        if(player_id == 1) printf("\tYou have %d brick, %d lumber, %d wool, %d grain, %d ore\n", players[player_index(player_id, players)]->resource[0], players[player_index(player_id, players)]->resource[1], players[player_index(player_id, players)]->resource[2], players[player_index(player_id, players)]->resource[3], players[player_index(player_id, players)]->resource[4]);
+
+        for(int i = 0; i < decide_num; i++){
+            if(player_id == 1){
+                int decide_type = -1;
+                while(1){
+                    printf("Resource:\t");
+                    if(scanf("%d", &decide_type) != 1)continue;
+                    if(decide_type > 4 || decide_type < 0) continue;
+                    if(players[player_index(player_id, players)]->resource[decide_type] > decide[decide_type]) break;
+                    else printf("Resource is not enough.\n");
+                }
+                decide[decide_type] ++;
+                printf("the resource you throw away: \n\t%d brick, %d lumber, %d wool, %d grain, %d ore\n", decide[0], decide[1], decide[2], decide[3], decide[4]);
+            }
+            else{
+                int resource_type = rand() % 5;
+                for(int j = 0; j < 5; j++){
+                    if(players[player_index(player_id, players)]->resource[j] > players[player_index(player_id, players)]->resource[resource_type]) resource_type = j;
+                }
+                while(players[player_index(player_id, players)]->resource[resource_type] == 0)
+                    resource_type = rand() % 5;
+                decide[resource_type] ++;
+            }
+        }
+
         for(int i = 0; i < 5; i++){
             p->resource[i] -= decide[i];
             resource[i] += decide[i];   
