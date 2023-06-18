@@ -140,6 +140,33 @@ https://www.libsdl.org/
 
 ## 程式架構
 
+```c
+// main.c
+// seudo structure of the program, not the real code, including the function name and the parameters
+
+int main(){
+    // initialize the variables
+    init_game(...);
+    // initialize SDL
+    init_SDL(...);
+
+    // show the map
+    render_map(...);
+
+    // start the game
+    while(game_is_not_end){
+        // check if any player has 10 VP
+        check_winner(...);
+
+        // start a round
+        start_round(...);
+    }
+
+    // free the memory
+    free_game(...);
+}
+```
+
 ### structure
 
 ```c
