@@ -264,6 +264,7 @@ int main(){
                 else take_resource(dice, map, resource, id);
                 render_map(renderer, map);
                 int select = 0;
+		int32_t dev_card_use_time = 0;
                 while(1){
                     most_knight_check(renderer, map);
                     longest_road_check(renderer, map);
@@ -290,9 +291,15 @@ int main(){
                             if(build_action(renderer, map, id) == -1) continue;
                         }
                         else if(select == 3){ // card
+			    if( dev_card_use_time >= 1 )
+			    {
+				printf(RED"You have already used dev_card\n"WHITE);
+				continue;
+			    }
                             dev_card_action( renderer, map, id );
+			    dev_card_use_time += 1;
                         }
-                        else if(select == 4){ // card
+                        else if(select == 4){ // info
                             print_player( map );
                         }
                         else{
@@ -318,7 +325,9 @@ int main(){
                             if(build_action(renderer, map, id) == -1) continue;
                         }
                         else if(select == 3){ // card
+			    if( dev_card_use_time >= 1 )    continue;
                             dev_card_action( renderer, map, id );
+			    dev_card_use_time += 1;
                         }
                     }
                     most_knight_check(renderer, map);
