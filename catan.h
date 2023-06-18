@@ -222,7 +222,9 @@ void trade_action( mapInfo *info, int32_t id );
 void trade_with_bank( player *player_A, landbetween **maps );
 void trade_with_player( player *candidate, player *player_A );
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice );
-int knight_action(SDL_Renderer *renderer, mapInfo *map, const int player_id);
+int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id);
+point from_screen_to_coor_piece(int x1, int y1);
+point from_coor_to_screen_piece(int x1, int y1);
 void monopoly_action( mapInfo *info, int id );
 //void free_road_building_action();
 int32_t year_of_plenty_action( mapInfo *info, int id );
@@ -1090,8 +1092,9 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
     if(id == 1)
         printf("choose a piece to move the robber\n");
 
+    render_map_piece_num(renderer, map);
     point p = move_robber(map, id);
-    printf("Player %d move the robber to (%d, %d)\n", id, p.x, p.y);
+    printf("Player %d move the robber to (%d, %d)\n", id, p.y, p.x);
     render_map(renderer, map);
 
     // let the player who roll the dice to choose a player to steal resource
@@ -1111,7 +1114,7 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
         int target_id = 0;
         if(id == 1){
             while(1){
-                printf("choose a player to steal resource\n");
+                printf("\nChoose a player to steal resource\n");
                 int c = scanf("%d", &target_id);
                 if(c != 1 || target_id < 2 || target_id > 4 || resource_num(target_id, map) == 0){
                     if(c != 1)
@@ -1164,23 +1167,62 @@ int discard_resource(player **players, int player_id){
     }
 }
 
+void render_map_piece_num(SDL_Renderer *renderer, mapInfo *map){
+    render_map(renderer, map);
+    for(int i = 0; i < 5; i++){
+        int x = 0;
+        int y = i*2 + 1;
+        y = y + y / 2;
+        y *= VIC_LEN; 
+        y *= 1.1;
+
+        SDL_Surface *land_surface = NULL;
+        if(i == 0)
+            land_surface = IMG_Load("picture/row_number/01_row.png");
+        else if(i == 1)
+            land_surface = IMG_Load("picture/row_number/02_row.png");
+        else if(i == 2)
+            land_surface = IMG_Load("picture/row_number/03_row.png");
+        else if(i == 3)
+            land_surface = IMG_Load("picture/row_number/04_row.png");
+        else if(i == 4)
+            land_surface = IMG_Load("picture/row_number/05_row.png");
+
+        y = y + PIECE_SIZE / 2 - LAND_SIZE / 2;
+
+        SDL_Texture *land_texture = SDL_CreateTextureFromSurface(renderer, land_surface);
+        SDL_Rect land_rect = {x, y, LAND_SIZE, LAND_SIZE};
+        SDL_RenderCopy(renderer, land_texture, NULL, &land_rect);
+        SDL_DestroyTexture(land_texture);
+        SDL_FreeSurface(land_surface);
+    }   
+    SDL_RenderPresent(renderer);
+}
+
 point move_robber(mapInfo *map, const int id){
     piece **pieces = map->pieces;
     // get the player's dicision of piece to move the robber
-    point p;
+    point p = {0, 0};
     if(id == 1){
-        int c1 = 0, c2 = 0, c3 = 0;
-        while((c1 = scanf("%d %d", &(p.x), &(p.y))) != 2 || (c2 = point_type(p.x, p.y)) != TYPE_PIECE || (c3 = is_robber_on_piece(map, p.x, p.y) == true)){
-            if(c1 != 2){
-                printf("Please enter two numbers\n");
-                while(getchar() != '\n');
+        int c1 = 0, c2 = 0, c3 = 0, x = 0, y = 0;
+        printf("Please enter a coordinate to move robber(row colume):\n");
+        while((c2 = point_type(p.x, p.y)) != TYPE_PIECE || (c3 = is_robber_on_piece(map, p.x, p.y) == true)){
+            printf("\tpiece location: ");
+            x = 0;
+            y = 0;
+            if((c1 = scanf("%d %d", &y, &x)) != 2){
+                int c;
+                while ((c = getchar()) != '\n' && c != EOF);
+                continue;
             }
-            else if(c2 != TYPE_PIECE)
-                printf("Please enter a valid piece\n");
-            else if(c3 != false)
-                printf("Please enter a piece without robber\n");
+            p = from_screen_to_coor_piece(x, y);
+            
+            if((c2 = point_type(p.x, p.y)) != TYPE_PIECE)
+                printf("\tPlease enter a valid piece\n");
+            else if((c3 = is_robber_on_piece(map, p.x, p.y) == true))
+                printf("\tPlease enter a piece without robber\n");
         }
-        printf("1: (%d, %d)\n", p.x, p.y);
+        //printf("1: (%d, %d)\n", p.x, p.y);
     }
     // ai player
     else{
@@ -1193,7 +1235,7 @@ point move_robber(mapInfo *map, const int id){
             p.x = pieces[th]->p.x;
             p.y = pieces[th]->p.y;
         }
-        printf("2: (%d, %d)\n", p.x, p.y);
+        // printf("2: (%d, %d)\n", p.x, p.y);
     }
 
     // move the robber
@@ -1203,9 +1245,9 @@ point move_robber(mapInfo *map, const int id){
             break;
         }
     }
-    printf("piece_index(p.x, p.y, pieces): %d\n", piece_index(p.x, p.y, pieces));
+    // printf("piece_index(p.x, p.y, pieces): %d\n", piece_index(p.x, p.y, pieces));
     pieces[piece_index(p.x, p.y, pieces)]->robberFlag = true;
-    return p;
+    return from_coor_to_screen_piece(p.x, p.y);
 }
 
 /*
@@ -1453,12 +1495,65 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
     return credit;
 }
 
-int knight_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
+int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
     render_map(renderer, map);
+    player **players = map->players;
+    piece **pieces = map->pieces;
+    
     // move the robber
+    render_map_piece_num(renderer, map);
+    point p = move_robber(map, id);
+    printf("Player %d move the robber to (%d, %d)\n", id, p.y, p.x);
+    render_map(renderer, map);
 
-    //still resource
+    // let the player who roll the dice to choose a player to steal resource
+    bool cannot_steal = true;
+    for(int i = 0; i < PLAYER_NUM; i++){
+        if(players[i]->id != id && resource_num(players[i]->id, map) > 0){
+            cannot_steal = false;
+            break;
+        }
+    }
 
+    if(cannot_steal){
+        printf("Player %d cannot steal resources from other because no has resources\n");
+        return;
+    }
+    else{
+        int target_id = 0;
+        if(id == 1){
+            while(1){
+                printf("choose a player to steal resource\n");
+                int c = scanf("%d", &target_id);
+                if(c != 1 || target_id < 2 || target_id > 4 || resource_num(target_id, map) == 0){
+                    if(c != 1)
+                        printf("Please enter a number\n");
+                    else if(target_id < 2 || target_id > 4)
+                        printf("Please enter a number between 2 and 4\n");
+                    else if(resource_num(target_id, map) == 0)
+                        printf("Player %d has no resources, Please enter again\n", target_id);
+                    while(getchar() != '\n');
+                }
+                else
+                    break;
+            }
+        }
+        else{
+            target_id = rand() % 4 + 1;
+            while(target_id == id || resource_num(target_id, map) == 0)
+                target_id = rand() % 4 + 1;
+        }
+
+        int resource_type = rand() % 5;
+        while(players[player_index(target_id, players)]->resource[resource_type] == 0)
+            resource_type = rand() % 5;
+        
+        players[player_index(id, players)]->resource[resource_type]++;
+        players[player_index(target_id, players)]->resource[resource_type]--;
+
+        printf("Player %d steal resource from Player %d\n", id, target_id);
+    }
+    players[player_index(id, players)]->number_of_knights ++;
     most_knight_check(renderer, map);
     render_map(renderer, map);
     return 0;
@@ -1796,4 +1891,11 @@ void dev_point_action( mapInfo *info, int id )
     printf("Player%d has used point card\n", player_A->id );
 
     return;
+}
+
+int victory_check(mapInfo *map){
+    for(int i = 0; i < PLAYER_NUM; i++){
+        if(map->players[i]->VP >= 10) return map->players[i]->id;
+    }
+    return 5;
 }

@@ -147,6 +147,7 @@ int main(){
                 // else{
                     start_build(map, id, renderer);
                     render_map(renderer, map);
+                    
                 // }
             }
             //setting second settlement
@@ -240,72 +241,90 @@ int main(){
             isBuildInitalSettle = true;
         }
 
-        for(int i = 0; i < PLAYER_NUM; i++){
-            sleep(2);   
-            int id = players[i]->id;
-            printf("Player %d turn...\n", id);
+        while(1){
+            if(victory_check(map) != 5){
+                printf("Player %d win!\n\n", victory_check(map));
+                break;
+            }
+            for(int i = 0; i < PLAYER_NUM; i++){
+                sleep(2);   
+                int id = players[i]->id;
+                printf("Player %d turn...\n", id);
 
-            //roll dice and take resources
-            int dice = roll_dice();
-            printf("Player %d rolls %d points\n", id, dice);
-            if(dice == 7){
-                robber_situation(map, id, renderer);
+                //roll dice and take resources
+                int dice = roll_dice();
+                printf("Player %d rolls %d points\n", id, dice);
+                if(dice == 7){
+                    robber_situation(map, id, renderer);
+                    render_map(renderer, map);
+                }
+                else take_resource(dice, map, resource, id);
                 render_map(renderer, map);
-            }
-            else take_resource(dice, map, resource, id);
-            render_map(renderer, map);
 
-            int select = 0;
-            while(1){
-                most_knight_check(renderer, map);
-                longest_road_check(renderer, map);
-                if(id == 1){
-                    printf("Input:\t0 to exit \n\t1 to enter trade action \n\t2 to enter build action \n\t3 to enter developement card action \n");
-                    printf("action:\t");
-                    if(scanf("%d", &select)  != 1){
-                        int c;
-                        while ((c = getchar()) != '\n' && c != EOF);
-                        continue;
-                    }
-                    printf("\n");
-                    if(select == 0){
-                        printf("Exit. \n\n");
-                        most_knight_check(renderer, map);
-                        longest_road_check(renderer, map);
-                        break;
-                    }
-                    else if(select == 1){ // trade
-                        trade_action( map, id );
-                    }
-                    else if(select == 2){ // build
-                        if(build_action(renderer, map, id) == -1) continue;
-                    }
-                    else if(select == 3){ // card
-
-                    }
-                }
-                else{
-                    //ai select action
-
-                    if(select == 0){
-                        most_knight_check(renderer, map);
-                        longest_road_check(renderer, map);
+                int select = 0;
+                while(1){
+                    most_knight_check(renderer, map);
+                    longest_road_check(renderer, map);
+                    if(id == 1){
+                        printf("Input:\t0 to exit \n\t1 to enter trade action \n\t2 to enter build action \n\t3 to enter developement card action \n");
+                        printf("action:\t");
+                        if(scanf("%d", &select)  != 1){
+                            int c;
+                            while ((c = getchar()) != '\n' && c != EOF);
+                            continue;
+                        }
                         printf("\n");
+                        if(select == 0){
+                            printf("Exit. \n\n");
+                            most_knight_check(renderer, map);
+                            longest_road_check(renderer, map);
+                            break;
+                        }
+                        else if(select == 1){ // trade
+                            trade_action( map, id );
+                        }
+                        else if(select == 2){ // build
+                            if(build_action(renderer, map, id) == -1) continue;
+                        }
+                        else if(select == 3){ // card
+
+                        }
+                    }
+                    else{
+                        //ai select action
+                        trade_action( map, id );
+                        if(build_action(renderer, map, id) == -1) continue;
+
+                        select = random() %4;
+
+                        if(select == 0){
+                            most_knight_check(renderer, map);
+                            longest_road_check(renderer, map);
+                            printf("\n");
+                            break;
+                        }
+                        else if(select == 1){
+                            
+                        }
+                        else if(select == 2){
+                            if(build_action(renderer, map, id) == -1) continue;
+                        }
+                        else if(select == 3){
+
+                        }
+                    }
+                    if(victory_check(map) != 5){
                         break;
                     }
-                    else if(select == 1){
-                        trade_action( map, id );
-                    }
-                    else if(select == 2){
-                        if(build_action(renderer, map, id) == -1) continue;
-                    }
-                    else if(select == 3){
-
-                    }
+                }
+                if(victory_check(map) != 5){
+                    break;
                 }
             }
-
-
+            if(victory_check(map) != 5){
+                printf("Player %d win!\n\n", victory_check(map));
+                break;
+            }
         }
         break;
     }

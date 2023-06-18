@@ -437,6 +437,35 @@ point from_screen_to_coor(const int x1, const int y1){
     return p;
 }
 
+point from_screen_to_coor_piece(int x1, int y1){
+    point p = {0, 0};
+    if(y1<1 || y1 > 5)  return p;
+    else p.y = y1*2;
+
+    int count = 0;
+    for(int i = 0; i < X_LONG; i++){
+        if(valid_point_mat[p.y][i] == TYPE_PIECE){
+            count++;
+            if(count == x1){
+                p.x = i;
+                return p;
+            } 
+        }
+    }
+    return p;
+}
+
+point from_coor_to_screen_piece(int x1, int y1){
+    point p = {0, y1/2};
+
+    for(int i = 0; i <= x1; i++){
+        if(valid_point_mat[y1][i] == TYPE_PIECE){
+            p.x++;
+        }
+    }
+    return p;
+}
+
 int take_initial_resource(mapInfo *map, const int player_id, const point p){
     int top = p.y - 1, bot = p.y + 2, left = p.x - 1, right = p.x + 1;
     if(top < 0) top = 0;
@@ -587,7 +616,6 @@ int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer){
                 continue;
             } 
             location = from_screen_to_coor(x, y);
-            printf("\n");
             if(location.x * location.y == 0 || get_land_p(map, location) == -1 || !ability[get_land_p(map, location)]) printf("Location can not build, please try again.\n");
         }
     }
@@ -612,7 +640,7 @@ int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer){
         point p3 = {0, 0};
         if(player_id == 1){
             //print_test_road(map, ability_road);
-            printf("Please enter two coordinate to build road(row colume):\n");
+            printf("\nPlease enter two coordinate to build road(row colume):\n");
             while(get_road_2p(map, p1, p2) == -1 || !ability_road[get_road_2p(map, p1, p2)]){
                 render_map_road(renderer, map, ability_road, p3);
                 x = 0;
@@ -1063,6 +1091,9 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                 }
                 printf("Take success, the card type is \"%s.\" \n\n", card_name[list_first_entry((map->players[get_player_index(map, player_id)]->devcard_list), devcard, node)->type]);
                 map->players[get_player_index(map, player_id)]->number_of_dev_card ++;
+                if(list_first_entry((map->players[get_player_index(map, player_id)]->devcard_list), devcard, node)->type == VICTORY_POINT){
+                    map->players[get_player_index(map, player_id)]->VP ++;
+                }
             }
             else{
                     printf("Input error. \n\n");
@@ -1240,6 +1271,9 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
                 }
                 printf("Player %d take a developement card.\n", player_id);
                 map->players[get_player_index(map, player_id)]->number_of_dev_card ++;
+                if(list_first_entry((map->players[get_player_index(map, player_id)]->devcard_list), devcard, node)->type == VICTORY_POINT){
+                    map->players[get_player_index(map, player_id)]->VP ++;
+                }
             }
             else{
                 printf("\n");
