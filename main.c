@@ -271,10 +271,16 @@ int main(int argc, char *argv[]){
             if(victory_check(map) != 5) return 0;
 
 	    /* Pirate prob */
-	    int pirate_prob = rand() % 100;
+	    if( season_flag == 1 && season_turn != WINTER )
+	    {
+		int pirate_prob = rand() % 100;
 
-	    if( pirate_prob > 70 )  pirate = 1;
-	    else		    pirate = 0;
+		if( pirate_prob > 70 )  pirate = 1;
+		else		    pirate = 0;
+	    }
+
+	    /* Season turn */
+	    if( season_flag == 1 )  season_turn = ( season_turn + 1 ) % 4;
 
             print_player(map);
 
