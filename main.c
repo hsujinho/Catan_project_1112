@@ -299,6 +299,7 @@ int main(int argc, char *argv[]){
                 render_map(renderer, map);
                 int select = 0;
                 int32_t dev_card_use_time = 0;
+		int32_t trade_time = 0;
                 reset_dev_card_status( map, id ); // set dev_card->used = 0
                 while(1){
                     most_knight_check(renderer, map);
@@ -320,7 +321,9 @@ int main(int argc, char *argv[]){
                             break;
                         }
                         else if(select == 1){ // trade
+			    if( trade_time >= 1 )   continue;
                             trade_action( map, id );
+			    trade_time += 1;
                         }
                         else if(select == 2){ // build
                             if(build_action(renderer, map, id) == -1) continue;

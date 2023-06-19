@@ -1705,7 +1705,9 @@ void trade_with_player( player *candidate, player *player_A )
     }
     else
     {
-	if( !is_resource_enough( candidate->resource, resource_get ) )
+	int sum = 0;
+	for( int i = 0; i < 5; i++ )	sum += player_A->resource[i];
+	if( !is_resource_enough( candidate->resource, resource_get ) || sum > 7 )
 	{
 	    candidate_decision = 2;
 	}
