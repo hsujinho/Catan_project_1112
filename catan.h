@@ -384,7 +384,7 @@ void print_player(mapInfo *map){
 // SDL implement
 void render_pieces(SDL_Renderer *renderer, mapInfo *map){
     //set background color
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(renderer, 130, 240, 255, 255);
     SDL_RenderClear(renderer);
 
     piece **pieces = map->pieces;
@@ -452,7 +452,7 @@ void render_pieces(SDL_Renderer *renderer, mapInfo *map){
 
 void render_map(SDL_Renderer *renderer, mapInfo *map){
     //set background color
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 206, 255, 255);
     SDL_RenderClear(renderer);
 
     if(season_flag){
