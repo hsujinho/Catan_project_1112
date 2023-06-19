@@ -270,7 +270,14 @@ int main(int argc, char *argv[]){
             longest_road_check(renderer, map);
             if(victory_check(map) != 5) return 0;
 
+	    /* Pirate prob */
+	    int pirate_prob = rand() % 100;
+
+	    if( pirate_prob > 70 )  pirate = 1;
+	    else		    pirate = 0;
+
             print_player(map);
+
             for(int i = 0; i < PLAYER_NUM; i++){   
                 int id = players[i]->id;
                 printf(BLUE"\nPlayer %d turn...\n"WHITE, id);
