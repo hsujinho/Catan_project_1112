@@ -272,6 +272,7 @@ int main(int argc, char *argv[]){
             if(victory_check(map) != 5) return 0;
 
             print_player(map);
+            if(season_flag) print_season();
             for(int i = 0; i < PLAYER_NUM; i++){   
                 int id = players[i]->id;
                 printf(BLUE"\nPlayer %d turn...\n"WHITE, id);
