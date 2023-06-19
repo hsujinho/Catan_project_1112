@@ -2098,7 +2098,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     {
 	while( 1 )
 	{
-	    if( !( season_flag == 1 && season_turn == 2 ) )
+	    if( !( season_flag == 1 && season_turn == AUTUMN ) )
 	    {
 		printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
 		if( scanf("%d %d", &get_choice1, &get_choice2 ) != 2 )
@@ -2159,7 +2159,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     }
     else // AI version: pick 2 least resources with least number
     {
-	if( !( season_flag == 1 && season_turn == 3 ) )
+	if( !( season_flag == 1 && season_turn == AUTUMN ) )
 	{
 	    int32_t min1 = 30;
 	    int32_t min2 = 30;
@@ -2229,7 +2229,15 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
     info->players[ player_index( id, info->players ) ]->resource[ get_choice2 ] += 1;
     if( season_flag == 1 && season_turn == 2 )	info->players[ player_index( id, info->players ) ]->resource[ get_choice3 ] += 1;
 
+    if( season_flag == 1 && season_turn == 2 )
+    {
+	printf("Player %d has used year_of_plenty card and freely get 3 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
+    }
+    else
+    {
     printf("Player %d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
+    }
+
 
     /* Devcard modification: used status = 1 */
     info->players[ player_index( id, info->players ) ]->number_of_dev_card -= 1;
