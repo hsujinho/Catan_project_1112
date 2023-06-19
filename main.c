@@ -289,9 +289,6 @@ int main(int argc, char *argv[]){
 		else				diastrophism = 0;
 	    }
 
-	    /* Season turn */
-	    if( season_flag == 1 )  season_turn = ( season_turn + 1 ) % 4;
-
             print_player(map);
 
             if(season_flag) print_season();
@@ -390,6 +387,9 @@ int main(int argc, char *argv[]){
             longest_road_check(renderer, map);
             if(victory_check(map) != 5) return 0;
             sleep(2);
+
+	    /* Season turn */
+	    if( season_flag == 1 )  season_turn = ( season_turn + 1 ) % 4;
         }
         break;
     }

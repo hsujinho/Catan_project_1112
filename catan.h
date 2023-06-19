@@ -1140,7 +1140,12 @@ int take_resource(int DP, mapInfo *map, int *resource, int first_id){
                         }
 			if( season_flag && pieces[i]->eco_type == ORE && diastrophism )
 			{
-                            printf("\033[1;36m""Player %d get more ore because of diastrophism\n"WHITE, players[player_index(turn[k], players)]->id);
+                if(season_turn == SPRING)printf("\033[1;35m");
+                if(season_turn == SUMMER)printf("\033[1;36m");
+                if(season_turn == AUTUMN)printf("\033[1;32m");
+                if(season_turn == WINTER)printf("\033[1;37m");
+
+                            printf("\033[1;35m""Player %d get more ore because of diastrophism\n"WHITE, players[player_index(turn[k], players)]->id);
                             point ++;
 			}
                         // if the resource is not enough
