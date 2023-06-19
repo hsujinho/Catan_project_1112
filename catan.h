@@ -323,27 +323,6 @@ void print_player(mapInfo *map);
 void print_player(mapInfo *map){
 
     /* Print season status and some features */
-    if( season_flag == 1 )
-    {
-	switch( season_turn )
-	{
-	    case SPRING:
-		printf(BLUE"Season: Spring\n"WHITE);
-		break;
-	    case SUMMER:
-		printf(BLUE"Season: Summer\n"WHITE);
-		break;
-	    case AUTUMN:
-		printf(BLUE"Season: Autumn\n"WHITE);
-		break;
-	    case WINTER:
-		printf(BLUE"Season: Winter\n"WHITE);
-		break;
-	    default:
-		break;
-	}
-    }
-
     if( season_flag == 1 && season_turn != WINTER && pirate == 1 )
     {
 	printf(BLUE"* Pirate appears\n"WHITE);
