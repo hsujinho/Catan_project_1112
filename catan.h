@@ -2304,7 +2304,7 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 
     /* Quit */
     if( dev_choice == 6 ) {
-        printf("exit\n\n");
+        if( auto_battle_flag == 0 && id == 1 ) printf("exit\n\n");
         return;
     }
 

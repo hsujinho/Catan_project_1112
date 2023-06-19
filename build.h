@@ -829,12 +829,18 @@ bool is_resource_enough_b(mapInfo *map, const int player_id, const int resource_
 
 int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
     if(auto_battle_flag == 0 && player_id == 1) printf("Welcome to building action.\n");
+    if(auto_battle_flag == 0 && player_id == 1) printf("You have %d brick, %d lumber, %d wool, %d grain, %d ore\n", map->players[player_index(player_id, map->players)]->resource[0], map->players[player_index(player_id, map->players)]->resource[1], map->players[player_index(player_id, map->players)]->resource[2], map->players[player_index(player_id, map->players)]->resource[3], map->players[player_index(player_id, map->players)]->resource[4]);
+
     while(1){
         render_map(renderer, map);
         longest_road_check(renderer, map);
         if(auto_battle_flag == 0 && player_id == 1){
             int act = 0; // 0 road; 1 village; 2 castle; 3 exit
-            printf("Input:\t0 to exit \n\t1 to build road \n\t2 to build village \n\t3 to build castle \n\t4 to buy development card\n");
+            printf("Input:\t0 to exit \n");
+            printf("\t1 to build road (1 brick, 1 lumber, 0 wool, 0 grain, 0 ore)\n");
+            printf("\t2 to build village (1 brick, 1 lumber, 1 wool, 1 grain, 0 ore)\n");
+            printf("\t3 to build castle (0 brick, 0 lumber, 0 wool, 2 grain, 3 ore)\n");
+            printf("\t4 to buy development card (0 brick, 0 lumber, 1 wool, 1 grain, 1 ore)\n");
             printf("action:\t");
             if(scanf("%d", &act)  != 1){
                 int c;
@@ -843,7 +849,7 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
             }
             printf("\n");
             if(act == 0){
-                printf("Exit. \n\n");
+                printf("exit. \n\n");
                 return 0;
             }
             else if(act == 1){
