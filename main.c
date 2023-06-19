@@ -56,7 +56,8 @@ int main(int argc, char *argv[]){
         }
     }
 
-    printf("Welcome to Catan!\n");
+    if(season_flag) printf("Welcome to Catan with Season!\n");
+    else printf("Welcome to Catan!\n");
     //print_simple_map();
     if(auto_battle_flag == 0){
         PRESS_ENTER;
@@ -277,12 +278,14 @@ int main(int argc, char *argv[]){
 
                 //roll dice and take resources
                 int dice = roll_dice();
-                printf("Player %d rolls %d points\n\n", id, dice);
+                printf("Player %d rolls %d points\n", id, dice);
                 if(dice == 7){
                     robber_situation(map, id, renderer);
                     render_map(renderer, map);
                 }
                 else take_resource(dice, map, resource, id);
+                printf("\n");
+
                 render_map(renderer, map);
                 int select = 0;
                 int32_t dev_card_use_time = 0;

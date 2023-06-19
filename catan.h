@@ -1048,7 +1048,15 @@ int take_resource(int DP, mapInfo *map, int *resource, int first_id){
                 for(int j = 0; j < 6; j++){
                     // if the land between has building && the owner is the player
                     if(lands[land_index(pos[j].x, pos[j].y, lands)]->has_building && lands[land_index(pos[j].x, pos[j].y, lands)]->owner == turn[k]){
-                        const int point = lands[land_index(pos[j].x, pos[j].y, lands)]->building;
+                        int point = lands[land_index(pos[j].x, pos[j].y, lands)]->building;
+                        if(season_flag && season_turn == SPRING && pieces[i]->eco_type == GRAIN){
+                            printf("Player %d get more grain because of spring\n", players[player_index(turn[k], players)]->id);
+                            point ++;
+                        }
+                        if(season_flag && season_turn == SUMMER && pieces[i]->eco_type == LUMBER){
+                            printf("Player %d get more lumber because of summer\n", players[player_index(turn[k], players)]->id);
+                            point ++;
+                        }
                         // if the resource is not enough
                         if(resource[pieces[i]->eco_type] < point){
                             players[player_index(turn[k], players)]->resource[pieces[i]->eco_type] += resource[pieces[i]->eco_type];
