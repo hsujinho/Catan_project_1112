@@ -216,6 +216,28 @@ int season_turn = 0;
 #define AUTUMN 2
 #define WINTER 3
 
+void print_season(){
+    printf("\033[1m" "\033[7m");
+    if(season_turn == SPRING){
+        printf("\033[35m""*\\ Spring Is Coming /*\n"WHITE);
+        printf("\033[1;35m""Fields will produce more grain.\n"WHITE);
+    }
+    else if(season_turn == SUMMER){
+        printf("\033[36m""*\\ Summer Is Coming /*\n"WHITE);
+        printf("\033[1;36m""Forest will produce more lumber.\n"WHITE);
+    }
+    else if(season_turn == AUTUMN){
+        printf("\033[32m""*\\ Autumn Is Coming /*\n"WHITE);
+        printf("\033[1;32m""Year of plenty card will take more resource.\n"WHITE);
+    }
+    else if(season_turn == WINTER){
+        printf("\033[37m""*\\ Winter Is Coming /*\n"WHITE);
+        printf("\033[1;37m""You can take the resource even though the robber is on the piece.\n"WHITE);
+    }
+    PRINT_WHITE;
+    sleep(1);
+}
+
 int auto_battle_flag = 0;
 
 int pirate = 0;
@@ -423,6 +445,25 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
     //set background color
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
+
+    if(season_flag){
+        SDL_Surface *piece_surface = NULL;
+
+        if(season_turn == SPRING)
+            piece_surface = IMG_Load("picture/season/spring.png");
+        else if(season_turn == SUMMER)
+            piece_surface = IMG_Load("picture/season/summer.png");
+        else if(season_turn == AUTUMN)
+            piece_surface = IMG_Load("picture/season/autumn.png");
+        else if(season_turn == WINTER)
+            piece_surface = IMG_Load("picture/season/winter.png");
+
+        SDL_Texture *piece_texture = SDL_CreateTextureFromSurface(renderer, piece_surface);
+        SDL_Rect piece_rect = {600, 10, 100, 100};
+        SDL_RenderCopy(renderer, piece_texture, NULL, &piece_rect);
+        SDL_DestroyTexture(piece_texture);
+        SDL_FreeSurface(piece_surface);
+    }
 
     piece **pieces = map->pieces;
     landbetween **lands = map->lands;
@@ -1079,7 +1120,15 @@ int take_resource(int DP, mapInfo *map, int *resource, int first_id){
                 for(int j = 0; j < 6; j++){
                     // if the land between has building && the owner is the player
                     if(lands[land_index(pos[j].x, pos[j].y, lands)]->has_building && lands[land_index(pos[j].x, pos[j].y, lands)]->owner == turn[k]){
-                        const int point = lands[land_index(pos[j].x, pos[j].y, lands)]->building;
+                        int point = lands[land_index(pos[j].x, pos[j].y, lands)]->building;
+                        if(season_flag && season_turn == SPRING && pieces[i]->eco_type == GRAIN){
+                            printf("\033[1;35m""Player %d get more grain because of spring\n"WHITE, players[player_index(turn[k], players)]->id);
+                            point ++;
+                        }
+                        if(season_flag && season_turn == SUMMER && pieces[i]->eco_type == LUMBER){
+                            printf("\033[1;36m""Player %d get more lumber because of summer\n"WHITE, players[player_index(turn[k], players)]->id);
+                            point ++;
+                        }
                         // if the resource is not enough
                         if(resource[pieces[i]->eco_type] < point){
                             players[player_index(turn[k], players)]->resource[pieces[i]->eco_type] += resource[pieces[i]->eco_type];
@@ -2325,7 +2374,7 @@ int victory_check(mapInfo *map){
                 devcard *card = list_entry( pos, devcard, node );
                 if( card->type == VICTORY_POINT)	count += 1;
             }
-            printf("Player %d get 10 point: %d village, %d city, %d point card", map->players[i]->id, map->players[i]->number_of_building[1], map->players[i]->number_of_building[2], count);
+            printf("Player %d get 10 point: \n%d village, %d city, %d point card", map->players[i]->id, map->players[i]->number_of_building[1], map->players[i]->number_of_building[2], count);
             if(map->players[i]->has_longest_road) printf(", has the LONGEST ROAD");
             if(map->players[i]->has_most_knights) printf(", has the MOST KINGHT");
             printf(".\n");
@@ -2428,7 +2477,7 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 
     /* Quit */
     if( dev_choice == 6 ) {
-        printf("exit\n\n");
+        if( auto_battle_flag == 0 && id == 1 ) printf("exit\n\n");
         return;
     }
 
