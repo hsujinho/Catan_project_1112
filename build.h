@@ -500,16 +500,16 @@ road *ai_choose_road(mapInfo *map, const int ab[ROAD_NUM], const int player_id){
             c = 0;
         }
         if(map->lands[get_land_p(map, map->roads[n]->start)]->owner == -1) gra+=4;
+        else if(map->lands[get_land_p(map, map->roads[n]->start)]->owner != player_id) gra-=8;
         if(map->lands[get_land_p(map, map->roads[n]->end)]->owner == -1) gra+=4;
-        if(map->lands[get_land_p(map, map->roads[n]->start)]->owner != player_id) gra-=8;
-        if(map->lands[get_land_p(map, map->roads[n]->end)]->owner != player_id) gra-=8;
+        else if(map->lands[get_land_p(map, map->roads[n]->end)]->owner != player_id) gra-=8;
 
         for(int j = 0; j < ROAD_NUM; j++){
             if(map->roads[j]->start.x == map->roads[n]->end.x && map->roads[j]->start.y == map->roads[n]->end.y){
-                if(map->roads[j]->owner == player_id) gra += 8;
+                if(map->roads[j]->owner == player_id) gra += 4;
             }
             if(map->roads[j]->end.x == map->roads[n]->start.x && map->roads[j]->end.y == map->roads[n]->start.y){
-                if(map->roads[j]->owner == player_id) gra += 8;
+                if(map->roads[j]->owner == player_id) gra += 4;
             }
         }
 
@@ -562,10 +562,10 @@ landbetween *ai_choose_building(mapInfo *map, const int ab[LAND_NUM]){
         if(getsource[3] + getsource[4] > 1) gra += 4;
         if(getsource[3] + getsource[4] > 2) gra += 4;
 
-        if((!is_in_three_pieces_lands_pos(map->lands[n]->p.x, map->lands[n]->p.y))) gra -= 8;
+        if((!is_in_three_pieces_lands_pos(map->lands[n]->p.x, map->lands[n]->p.y))) gra -= 4;
 
         for(int i = 0; i < 3; i++){
-            if(point_n[i] == 7) gra -= 8;
+            if(point_n[i] == 7) gra -= 4;
             else if(point_n[i] == 0) gra -= 2;
             else if(point_n[i] > 7) gra -= ((point_n[i] - 7));
             else gra -= ((7 - point_n[i]));
@@ -599,7 +599,7 @@ int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer){
 
     int x = 0, y = 0;
     point location = {0, 0};
-    if(player_id == 1){
+    if(auto_battle_flag == 0 && player_id == 1){
         render_map_build(renderer, map, ability);
         printf("Please enter a coordinate to build village(row colume):\n");
         while(get_land_p(map, location) == -1 || !ability[get_land_p(map, location)]){
@@ -634,7 +634,7 @@ int start_build(mapInfo *map, const int player_id, SDL_Renderer *renderer){
         point p1 = {0, 0};
         point p2 = {0, 0};
         point p3 = {0, 0};
-        if(player_id == 1){
+        if(auto_battle_flag == 0 && player_id == 1){
             //print_test_road(map, ability_road);
             printf("\nPlease enter two coordinate to build road(row colume):\n");
             while(get_road_2p(map, p1, p2) == -1 || !ability_road[get_road_2p(map, p1, p2)]){
@@ -687,7 +687,7 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
     for(int n = 0; n < 2; n++){
         render_map(renderer, map);
         if(map->players[get_player_index(map, player_id)]->number_of_building[ROAD] >= 15){
-            if(player_id == 1) printf(RED"\nRoad number can not over than 15. \n\n"WHITE);
+            if(auto_battle_flag == 0 && player_id == 1) printf(RED"\nRoad number can not over than 15. \n\n"WHITE);
             if(n == 0){
                 return -1;
             }
@@ -728,7 +728,7 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
             }
         }
         if(jump_flag){
-            if(player_id == 1)printf(RED"\nThere isn't any location can be built.\n\n"WHITE);
+            if(auto_battle_flag == 0 && player_id == 1)printf(RED"\nThere isn't any location can be built.\n\n"WHITE);
             if(n == 0){
                 return -1;
             }
@@ -741,7 +741,7 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
         point p1 = {0, 0};
         point p2 = {0, 0};
         point p3 = {0, 0};
-        if(player_id == 1){
+        if(auto_battle_flag == 0 && player_id == 1){
             printf("Please enter two coordinate to build road(row colume):\nEnter 0 0 if you want to exit.\n(Notice: you will lose a build chance if you have built one time.)\n");
             while(get_road_2p(map, p1, p2) == -1 || !ability[get_road_2p(map, p1, p2)]){
                 render_map_road(renderer, map, ability, p3);
@@ -798,8 +798,7 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
             printf(RED"\nBuild fail\n\n"WHITE);
             return -3;
         }
-        render_map(renderer, map);
-        longest_road_check(renderer, map);
+
         if(n == 0){
             map->players[get_player_index(map, player_id)]->number_of_dev_card -= 1;
             struct list_head *pos = NULL;
@@ -813,6 +812,8 @@ int free_road_building_action(SDL_Renderer *renderer, mapInfo *map, const int pl
             }
             }
         }
+        render_map(renderer, map);
+        longest_road_check(renderer, map);
     }
     return 0;
 }
@@ -827,13 +828,19 @@ bool is_resource_enough_b(mapInfo *map, const int player_id, const int resource_
 }
 
 int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
-    if(player_id == 1) printf("Welcome to building action.\n");
+    if(auto_battle_flag == 0 && player_id == 1) printf("Welcome to building action.\n");
+    if(auto_battle_flag == 0 && player_id == 1) printf("You have %d brick, %d lumber, %d wool, %d grain, %d ore\n", map->players[player_index(player_id, map->players)]->resource[0], map->players[player_index(player_id, map->players)]->resource[1], map->players[player_index(player_id, map->players)]->resource[2], map->players[player_index(player_id, map->players)]->resource[3], map->players[player_index(player_id, map->players)]->resource[4]);
+
     while(1){
         render_map(renderer, map);
         longest_road_check(renderer, map);
-        if(player_id == 1){
+        if(auto_battle_flag == 0 && player_id == 1){
             int act = 0; // 0 road; 1 village; 2 castle; 3 exit
-            printf("Input:\t0 to exit \n\t1 to build road \n\t2 to build village \n\t3 to build castle \n\t4 to buy development card\n");
+            printf("Input:\t0 to exit \n");
+            printf("\t1 to build road (1 brick, 1 lumber, 0 wool, 0 grain, 0 ore)\n");
+            printf("\t2 to build village (1 brick, 1 lumber, 1 wool, 1 grain, 0 ore)\n");
+            printf("\t3 to build castle (0 brick, 0 lumber, 0 wool, 2 grain, 3 ore)\n");
+            printf("\t4 to buy development card (0 brick, 0 lumber, 1 wool, 1 grain, 1 ore)\n");
             printf("action:\t");
             if(scanf("%d", &act)  != 1){
                 int c;
@@ -842,7 +849,7 @@ int build_action(SDL_Renderer *renderer, mapInfo *map, const int player_id){
             }
             printf("\n");
             if(act == 0){
-                printf("Exit. \n\n");
+                printf("exit. \n\n");
                 return 0;
             }
             else if(act == 1){

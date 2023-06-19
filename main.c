@@ -33,10 +33,35 @@ void print_simple_map(){
     }
 }
 
-int main(){ 
-    printf("Welcome to Catan!\n");
+int main(int argc, char *argv[]){ 
+
+    int c_tmp = 0;
+    int index = 0;
+    while ( ( c_tmp = getopt_long( argc, argv, "ash", long_options, &index ) ) != -1 )
+    {
+        switch( c_tmp )
+        {
+            case 'a':
+                auto_battle_flag = 1;
+                break;
+            case 's':
+                season_flag = 1;
+                break;
+            case 'h':
+                print_help();
+                return 0;
+            default:
+                printf( RED"-%c option error\n"WHITE, c_tmp ); 
+                break;
+        }
+    }
+
+    if(season_flag) printf("Welcome to Catan with Season!\n");
+    else printf("Welcome to Catan!\n");
     //print_simple_map();
-    PRESS_ENTER;
+    if(auto_battle_flag == 0){
+        PRESS_ENTER;
+    } 
 
     //declare variables
     player **players = NULL;
@@ -79,7 +104,7 @@ int main(){
             for(int i = 0; i < PLAYER_NUM; i++){
                 int id = players[i]->id;
                 reverse_turn[3 - i] = id;
-                // if(id == 1){
+                // if(auto_battle_flag == 0 && id == 1){
                 //     printf("Please choose your initial building\n");
 
                 //     printf("please enter the x and y coordinate of the point to build your first settlement\n");
@@ -145,7 +170,6 @@ int main(){
 
                 // }
                 // else{
-                    //if(id == 1)continue;
                     start_build(map, id, renderer);
                     render_map(renderer, map);
                     
@@ -155,7 +179,7 @@ int main(){
             for(int i = 0; i < PLAYER_NUM; i++){
                 for(int j = 0; j < PLAYER_NUM; j++){
                     if(reverse_turn[i] == players[j]->id){
-                        // if(reverse_turn[i] == 1){
+                        // if(auto_battle_flag == 0 && reverse_turn[i] == 1){
                         //     printf("Please choose your initial building\n");
 
                         //     printf("please enter the x and y coordinate of the point to build your second settlement\n");
@@ -232,7 +256,6 @@ int main(){
                         //     render_map(renderer, map);
                         // }
                         // else{
-                            //if(players[j]->id == 1)continue;
                             start_build(map, players[j]->id, renderer);
                             render_map(renderer, map);
                         // }
@@ -248,9 +271,29 @@ int main(){
             longest_road_check(renderer, map);
             if(victory_check(map) != 5) return 0;
 
+	    /* Pirate prob */
+	    if( season_flag == 1 && season_turn != WINTER )
+	    {
+		int pirate_prob = rand() % 100;
+
+		if( pirate_prob > 70 )  pirate = 1;
+		else		    pirate = 0;
+	    }
+
+	    /* Diastrophism prob */
+	    if( season_flag == 1 )
+	    {
+		int diastrophism_prob = rand() % 100;
+
+		if( diastrophism_prob > 70 )	diastrophism = 1;
+		else				diastrophism = 0;
+	    }
+
             print_player(map);
+
+            if(season_flag) print_season();
+
             for(int i = 0; i < PLAYER_NUM; i++){   
-                //if(players[i]->id == 1)continue;
                 int id = players[i]->id;
                 printf(BLUE"\nPlayer %d turn...\n"WHITE, id);
 
@@ -262,16 +305,18 @@ int main(){
                     render_map(renderer, map);
                 }
                 else take_resource(dice, map, resource, id);
+                printf("\n");
+
                 render_map(renderer, map);
                 int select = 0;
                 int32_t dev_card_use_time = 0;
+		int32_t trade_time = 0;
                 reset_dev_card_status( map, id ); // set dev_card->used = 0
                 while(1){
                     most_knight_check(renderer, map);
                     longest_road_check(renderer, map);
                     if(victory_check(map) != 5) return 0;
-                    if(id == 1){
-                        // for(int x = 0; x < 5; x++) players[i]->resource[x] +=10;
+                    if(auto_battle_flag == 0 && id == 1){
                         printf("Input:\t0 to exit \n\t1 to enter trade action \n\t2 to enter build action \n\t3 to enter developement card action \n\t4 to view the infomation of all players \n");
                         printf("action:\t");
                         if(scanf("%d", &select)  != 1){
@@ -287,7 +332,9 @@ int main(){
                             break;
                         }
                         else if(select == 1){ // trade
+			    if( trade_time >= 1 )   continue;
                             trade_action( map, id );
+			    trade_time += 1;
                         }
                         else if(select == 2){ // build
                             if(build_action(renderer, map, id) == -1) continue;
@@ -295,7 +342,7 @@ int main(){
                         else if(select == 3){ // card
 			    if( dev_card_use_time >= 1 )
 			    {
-				printf(RED"You have already used dev_card\n"WHITE);
+				printf(RED"You have already used dev_card\n\n"WHITE);
 				continue;
 			    }
                             dev_card_action( renderer, map, id );
@@ -311,10 +358,11 @@ int main(){
                     else{
                         //ai select action
                         if(build_action(renderer, map, id) == -1) continue;
-                        dev_card_action( renderer, map, id );
+                        if(dev_card_use_time < 1) dev_card_action( renderer, map, id );
+                        dev_card_use_time += 1;
 
-                        select = random() % 4;
-                        if(select == 1 && (random() % 100) < 50) continue;
+                        select = random() % 3;
+                        if(select == 1 && (random() % 100) < 60) continue;
                         if(select == 0){
                             most_knight_check(renderer, map);
                             longest_road_check(renderer, map);
@@ -325,11 +373,6 @@ int main(){
                         }
                         else if(select == 2){ // build
                             if(build_action(renderer, map, id) == -1) continue;
-                        }
-                        else if(select == 3){ // card
-			    if( dev_card_use_time >= 1 )    continue;
-                            dev_card_action( renderer, map, id );
-			    dev_card_use_time += 1;
                         }
                     }
                     most_knight_check(renderer, map);
@@ -344,6 +387,9 @@ int main(){
             longest_road_check(renderer, map);
             if(victory_check(map) != 5) return 0;
             sleep(2);
+
+	    /* Season turn */
+	    if( season_flag == 1 )  season_turn = ( season_turn + 1 ) % 4;
         }
         break;
     }
