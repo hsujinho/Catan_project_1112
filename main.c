@@ -315,7 +315,7 @@ int main(int argc, char *argv[]){
                         else if(select == 3){ // card
 			    if( dev_card_use_time >= 1 )
 			    {
-				printf(RED"You have already used dev_card\n"WHITE);
+				printf(RED"You have already used dev_card\n\n"WHITE);
 				continue;
 			    }
                             dev_card_action( renderer, map, id );

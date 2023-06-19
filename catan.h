@@ -1202,7 +1202,7 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
                     printf("exit.\n\n");
                     return;
                 }
-                if(target_id < 2 || target_id > 4){
+                if(target_id < 1 || target_id > 4){
                     printf(RED"\nInput error.\n\n"WHITE);
                     continue;
                 }
@@ -1816,7 +1816,7 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
                     printf("exit.\n\n");
                     return 0;
                 }
-                if(target_id < 2 || target_id > 4){
+                if(target_id < 1 || target_id > 4){
                     printf(RED"\nInput error.\n\n"WHITE);
                     continue;
                 }
@@ -2303,7 +2303,10 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     }
 
     /* Quit */
-    if( dev_choice == 6 ) return;
+    if( dev_choice == 6 ) {
+        printf("exit\n\n");
+        return;
+    }
 
     /* Check is can be used or not */
     int32_t flag = 0;
