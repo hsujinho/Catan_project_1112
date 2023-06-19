@@ -210,12 +210,15 @@ void print_help(){
 
 int season_flag = 0;
 int season_turn = 0;
+
 #define SPRING 0
 #define SUMMER 1
 #define AUTUMN 2
 #define WINTER 3
 
 int auto_battle_flag = 0;
+
+int pirate = 0;
 
 // function declaration
 
@@ -1732,6 +1735,12 @@ void trade_with_player( player *candidate, player *player_A )
 int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choice )
 {
     int32_t credit = 4;
+
+    if( season_flag == 1 && pirate == 1 && season_turn != WINTER )
+    {
+	return 4;
+    }
+
     for( int32_t i = 0; i < LAND_NUM; i++ )
     {
 	if( maps[i]->type == get_choice + 4 && maps[i]->owner == player_A->id )
@@ -2083,77 +2092,144 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 {
     int32_t get_choice1 = 0;
     int32_t get_choice2 = 0;
+    int32_t get_choice3 = 0;
+    int32_t get[5] = {0};
     if( auto_battle_flag == 0 && id == 1 ) // Player version
     {
 	while( 1 )
 	{
-	    printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
-	    if( scanf("%d %d", &get_choice1, &get_choice2 ) != 2 )
+	    if( !( season_flag == 1 && season_turn == 2 ) )
 	    {
-		printf(RED"\nPlease enter two integers\n\n"WHITE);
-		while(getchar() != '\n');
-	    }
-	    else if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
-	    {
-		printf(RED"\nYou can only type 0 - 4!\n\n"WHITE);
+		printf("What 2 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+		if( scanf("%d %d", &get_choice1, &get_choice2 ) != 2 )
+		{
+		    printf(RED"\nPlease enter two integers\n\n"WHITE);
+		    while(getchar() != '\n');
+		    continue;
+		}
+		else if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 )
+		{
+		    printf(RED"\nYou can only type 0 - 4!\n\n"WHITE);
+		    continue;
+		}
+
+		get[ get_choice1 ] += 1;
+		get[ get_choice2 ] += 1;
+
+		if( !is_resource_enough( resource, get ) )
+		{
+		    printf(RED"\nThe bank has not enough resources\n\n"WHITE);
+		    continue;
+		}
+		else
+		{
+		    break;
+		}
 	    }
 	    else
 	    {
-		break;
-	    }
+		printf("What 3 resources do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
+		if( scanf("%d %d %d", &get_choice1, &get_choice2, &get_choice3 ) != 3 )
+		{
+		    printf(RED"\nPlease enter three integers\n\n"WHITE);
+		    while(getchar() != '\n');
+		    continue;
+		}
+		else if( get_choice1 < 0 || get_choice1 > 4 || get_choice2 < 0 || get_choice2 > 4 || get_choice3 < 0 || get_choice3 > 4 )
+		{
+		    printf(RED"\nYou can only type 0 - 4!\n\n"WHITE);
+		    continue;
+		}
 
-	    int32_t get[5] = {0};
-	    get[ get_choice1 ] += 1;
-	    get[ get_choice2 ] += 1;
+		get[ get_choice1 ] += 1;
+		get[ get_choice2 ] += 1;
+		get[ get_choice3 ] += 1;
 
-	    if( !is_resource_enough( resource, get ) )
-	    {
-		printf(RED"\nThe bank has not enough resources\n\n"WHITE);
+		if( !is_resource_enough( resource, get ) )
+		{
+		    printf(RED"\nThe bank has not enough resources\n\n"WHITE);
+		    continue;
+		}
+		else
+		{
+		    break;
+		}
 	    }
 	}
     }
     else // AI version: pick 2 least resources with least number
     {
-	int32_t min1 = 30;
-	int32_t min2 = 30;
-	for( int32_t i = 0; i < 5; i++ )
+	if( !( season_flag == 1 && season_turn == 3 ) )
 	{
-	    if( info->players[ player_index( id, info->players ) ]->resource[i] < min1 && info->players[ player_index( id, info->players ) ]->resource[i] < min2 )
+	    int32_t min1 = 30;
+	    int32_t min2 = 30;
+
+	    player *player_A = info->players[ player_index( id, info->players ) ];
+	    for( int32_t i = 0; i < 5; i++ )
 	    {
-		min2 = min1;
-		min1 = info->players[ player_index( id, info->players ) ]->resource[i];
-		get_choice2 = get_choice1;
-		get_choice1 = i;
+		if( player_A->resource[i] < min1 )
+		{
+		    min2 = min1;
+		    get_choice2 = get_choice1;
+		    min1 = player_A->resource[i];
+		    get_choice1 = i;
+		}
+		else if( player_A->resource[i] >= min1 && player_A->resource[i] < min2 )
+		{
+		    min2 = player_A->resource[i];
+		    get_choice2 = i;
+		}
 	    }
-	    else if( info->players[ player_index( id, info->players ) ]->resource[i] > min1 && info->players[ player_index( id, info->players ) ]->resource[i] < min2 )
+
+	    get[ get_choice1 ] += 1;
+	    get[ get_choice2 ] += 1;
+	}
+	else
+	{
+	    int32_t min1 = 30;
+	    int32_t min2 = 30;
+	    int32_t min3 = 30;
+
+	    player *player_A = info->players[ player_index( id, info->players ) ];
+	    for( int32_t i = 0; i < 5; i++ )
 	    {
-		min2 = info->players[ player_index( id, info->players ) ]->resource[i];
-		get_choice2 = i;
+		if( player_A->resource[i] < min1 )
+		{
+		    min3 = min2;
+		    get_choice3 = get_choice2;
+		    min2 = min1;
+		    get_choice2 = get_choice1;
+		    min1 = player_A->resource[i];
+		    get_choice1 = i;
+		}
+		else if( player_A->resource[i] >= min1 && player_A->resource[i] < min2 )
+		{
+		    min3 = min2;
+		    get_choice3 = get_choice2;
+		    min2 = player_A->resource[i];
+		    get_choice2 = i;
+		}
+		else if( player_A->resource[i] >= min2 && player_A->resource[i] < min3 )
+		{
+		    min3 = player_A->resource[i];
+		    get_choice3 = i;
+		}
 	    }
-	    else if( info->players[ player_index( id, info->players ) ]->resource[i] > get_choice1 && info->players[ player_index( id, info->players ) ]->resource[i] > get_choice2 )
-	    {
-		continue;
-	    }
+
+	    get[ get_choice1 ] += 1;
+	    get[ get_choice2 ] += 1;
+	    get[ get_choice3 ] += 1;
 	}
     }
 
-    int32_t get[5] = {0};
-    get[ get_choice1 ] += 1;
-    get[ get_choice2 ] += 1;
+    resource[ get_choice1 ] -= 1;
+    resource[ get_choice2 ] -= 1;
+    if( season_flag == 1 && season_turn == 2 )	resource[ get_choice3 ] -= 1;
+    info->players[ player_index( id, info->players ) ]->resource[ get_choice1 ] += 1;
+    info->players[ player_index( id, info->players ) ]->resource[ get_choice2 ] += 1;
+    if( season_flag == 1 && season_turn == 2 )	info->players[ player_index( id, info->players ) ]->resource[ get_choice3 ] += 1;
 
-    if( !is_resource_enough( resource, get ) )
-    {
-	printf(RED"\nThe bank has not enough resources\n\n"WHITE);
-	return -1;
-    }
-    else
-    {
-	resource[ get_choice1 ] -= 1;
-	resource[ get_choice2 ] -= 1;
-	info->players[ player_index( id, info->players ) ]->resource[ get_choice1 ] += 1;
-	info->players[ player_index( id, info->players ) ]->resource[ get_choice2 ] += 1;
-	printf("Player %d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
-    }
+    printf("Player %d has used year_of_plenty card and freely get 2 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
 
     /* Devcard modification: used status = 1 */
     info->players[ player_index( id, info->players ) ]->number_of_dev_card -= 1;
@@ -2291,8 +2367,18 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
 	    struct list_head *pos = NULL;
 	    list_for_each( pos, player_A->devcard_list )
 	    {
+		int flag = 0;
+		for( int i = 0; i < 5; i++ )
+		{
+		    if( resource[i] >= 1 )  flag += 1;
+		}
+
 		devcard *card = list_entry( pos, devcard, node );
-		if( card->used == 0 )   dev_choice = card->type + 1;
+		if( card->used == 0 )
+		{ 
+		    if( card->type == YEAR_OF_PLENTY && flag < 3 )  continue;
+		    dev_choice = card->type + 1;
+		}
 		else			    continue;
 	    }
 	}
