@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <unistd.h>
+#include <getopt.h>
 #include <time.h>
 #include <math.h>
 #include <unistd.h>
@@ -189,6 +189,33 @@ const point three_pieces_lands_pos[24] = {
     {3, 8}, {5, 8}, {7, 8},
     {4, 9}, {6, 9},
 };
+
+//option
+
+struct option long_options[] = 
+{  
+     { "help",  0, NULL, 'h' },    
+     { "auto",  0, NULL, 'a' },    
+     { "season",  0, NULL, 's' },    
+     {  0, 0, 0, 0},  
+}; 
+
+void print_help(){
+    printf("Options:\n");
+    printf("\t-a --auto\tAuto battle.\n");
+    printf("\t-s, --season\tOpen the season mod.\n");
+    printf("\t-h, --help\tDisplay this description.\n");
+    return;
+}
+
+int season_flag = 0;
+int season_turn = 0;
+#define SPRING 0
+#define SUMMER 1
+#define AUTUMN 2
+#define WINTER 3
+
+int auto_battle_flag = 0;
 
 // function declaration
 
@@ -1123,14 +1150,14 @@ void free_devcard(struct list_head *devcards){
 
 void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
     player **players = map->players;
-    printf("\nEnter robber situation.\n");
+    printf("Enter robber situation.\n");
 
     // let all players discard resource
     for(int i = 0; i < PLAYER_NUM; i++)
         discard_resource(players, players[i]->id);
     
     // move the robber
-    if(id == 1) render_map_piece_num(renderer, map);
+    if(auto_battle_flag == 0 && id == 1) render_map_piece_num(renderer, map);
     point p = move_robber(map, id);
     printf("Player %d move the robber to (%d, %d)\n", id, p.y, p.x);
     render_map(renderer, map);
@@ -1159,12 +1186,12 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
         return;
     }
     if(neighbor_player[0] == 0){
-        if(id == 1)printf(RED"\nYou can steal from no one.\n\n"WHITE);
+        if(auto_battle_flag == 0 && id == 1)printf(RED"\nYou can steal from no one.\n\n"WHITE);
         return;
     }
     else{
         int target_id = 0;
-        if(id == 1){
+        if(auto_battle_flag == 0 && id == 1){
             while(1){
                 printf("\tChoose a player to steal resource (enter 0 to give up): ");
                 if(scanf("%d", &target_id) != 1){
@@ -1197,8 +1224,10 @@ void robber_situation(mapInfo *map, int id, SDL_Renderer *renderer){
         }
         else{
             target_id = rand() % 4 + 1;
-            while(target_id == id || resource_num(target_id, map) == 0 || neighbor_player[target_id] == 0)
+            while(target_id == id || resource_num(target_id, map) == 0 || neighbor_player[target_id] == 0){
                 target_id = rand() % 4 + 1;
+                if(random()%10000 < 1) return;
+            }
         }
 
         int resource_type = rand() % 5;
@@ -1225,11 +1254,11 @@ int discard_resource(player **players, int player_id){
         // get the player's dicision of resource to discard
         int decide[5] = {0};
         int decide_num = (total + (total%2)) / 2;
-        if(player_id == 1) printf("Enter the resource to throw away: ");
-        if(player_id == 1) printf("\n\tYou have %d brick, %d lumber, %d wool, %d grain, %d ore \n\t( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE)\n", players[player_index(player_id, players)]->resource[0], players[player_index(player_id, players)]->resource[1], players[player_index(player_id, players)]->resource[2], players[player_index(player_id, players)]->resource[3], players[player_index(player_id, players)]->resource[4]);
+        if(auto_battle_flag == 0 && player_id == 1) printf("Enter the resource to throw away: ");
+        if(auto_battle_flag == 0 && player_id == 1) printf("\n\tYou have %d brick, %d lumber, %d wool, %d grain, %d ore \n\t( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE)\n", players[player_index(player_id, players)]->resource[0], players[player_index(player_id, players)]->resource[1], players[player_index(player_id, players)]->resource[2], players[player_index(player_id, players)]->resource[3], players[player_index(player_id, players)]->resource[4]);
 
         for(int i = 0; i < decide_num; i++){
-            if(player_id == 1){
+            if(auto_battle_flag == 0 && player_id == 1){
                 int decide_type = -1;
                 while(1){
                     printf("Resource: ");
@@ -1244,13 +1273,13 @@ int discard_resource(player **players, int player_id){
             else{
                 int resource_type = rand() % 5;
                 for(int j = 0; j < 5; j++){
-                    if(players[player_index(player_id, players)]->resource[j] > players[player_index(player_id, players)]->resource[resource_type]) resource_type = j;
+                    if(players[player_index(player_id, players)]->resource[j]-decide[j] > players[player_index(player_id, players)]->resource[resource_type]-decide[resource_type]) resource_type = j;
                 }
-                while(players[player_index(player_id, players)]->resource[resource_type] == 0)
+                while(players[player_index(player_id, players)]->resource[resource_type] <= decide[resource_type])
                     resource_type = rand() % 5;
                 decide[resource_type] ++;
             }
-            if(player_id == 1) printf("\n");
+            if(auto_battle_flag == 0 && player_id == 1) printf("\n");
         }
 
         for(int i = 0; i < 5; i++){
@@ -1297,7 +1326,7 @@ point move_robber(mapInfo *map, const int id){
     piece **pieces = map->pieces;
     // get the player's dicision of piece to move the robber
     point p = {0, 0};
-    if(id == 1){
+    if(auto_battle_flag == 0 && id == 1){
         int c1 = 0, c2 = 0, c3 = 0, x = 0, y = 0;
         printf("Please enter a coordinate to move robber(row colume):\n");
         while((c2 = point_type(p.x, p.y)) != TYPE_PIECE || (c3 = is_robber_on_piece(map, p.x, p.y) == true)){
@@ -1312,9 +1341,13 @@ point move_robber(mapInfo *map, const int id){
             p = from_screen_to_coor_piece(x, y);
             
             if((c2 = point_type(p.x, p.y)) != TYPE_PIECE)
-                printf("\tPlease enter a valid piece\n");
+                printf(RED"\tPlease enter a valid piece\n"WHITE);
             else if((c3 = is_robber_on_piece(map, p.x, p.y) == true))
-                printf("\tPlease enter a piece without robber\n");
+                printf(RED"\tPlease enter a piece without robber\n"WHITE);
+            else if(map->pieces[piece_index(p.x, p.y, map->pieces)]->eco_type == DESERT){
+                printf(RED"\tPlease enter a piece except for desert\n"WHITE);
+                continue;
+            }
         }
         //printf("1: (%d, %d)\n", p.x, p.y);
     }
@@ -1324,7 +1357,7 @@ point move_robber(mapInfo *map, const int id){
         int th = rand() % PIECE_NUM;
         p.x = pieces[th]->p.x;
         p.y = pieces[th]->p.y;
-        while(is_robber_on_piece(map, p.x, p.y) == true){
+        while(is_robber_on_piece(map, p.x, p.y) == true || map->pieces[piece_index(p.x, p.y, map->pieces)]->eco_type == DESERT){
             th = rand() % PIECE_NUM;
             p.x = pieces[th]->p.x;
             p.y = pieces[th]->p.y;
@@ -1373,7 +1406,7 @@ void trade_action( mapInfo *info, int32_t id )
     player *player_A = info->players[ player_index( id, info->players ) ];
     int32_t choice = 0;
 
-    if( id == 1 ) // Player version
+    if( auto_battle_flag == 0 && id == 1 ) // Player version
     {
 	while( 1 )
 	{
@@ -1440,7 +1473,7 @@ void trade_action( mapInfo *info, int32_t id )
     
     if( choice == 5 )
     {
-	if( player_A->id == 1 )	    printf("Exit trading\n\n");
+	if( auto_battle_flag == 0 && player_A->id == 1 )	    printf("Exit trading\n\n");
 	return;
     }
     else if( choice == 4 )
@@ -1468,7 +1501,7 @@ void trade_with_bank( player *player_A, landbetween **maps )
     int32_t get_choice = 0;
     int32_t discard_choice = 0;
 
-    if( player_A->id == 1 )
+    if( auto_battle_flag == 0 && player_A->id == 1 )
     {
 	printf("What do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
 	if( scanf("%d", &get_choice ) != 1 )
@@ -1527,11 +1560,11 @@ void trade_with_bank( player *player_A, landbetween **maps )
     }
     else if( !is_resource_enough( player_A->resource, resources_discard ) )
     {
-	if(player_A->id == 1) printf(RED"\nYou don't have enough resource!\n\n"WHITE);
+	if(auto_battle_flag == 0 && player_A->id == 1) printf(RED"\nYou don't have enough resource!\n\n"WHITE);
     }
     else if( !is_resource_enough( resource, resources_get ) )
     {
-	if(player_A->id == 1) printf(RED"\nThe bank doesn't have enough resource!\n\n"WHITE);
+	if(auto_battle_flag == 0 && player_A->id == 1) printf(RED"\nThe bank doesn't have enough resource!\n\n"WHITE);
     }
     
     return;
@@ -1552,7 +1585,7 @@ void trade_with_player( player *candidate, player *player_A )
     int get_choice = 0;
     int discard_choice = 0;
     
-    if( player_A->id == 1 )
+    if( auto_battle_flag == 0 && player_A->id == 1 )
     {
 	printf("Please type number of resources you want to discard ( Format: BRICK LUMBER WOOL GRAIN ORE ): ");
 	if( scanf("%d %d %d %d %d", &resource_discard[0], &resource_discard[1], &resource_discard[2], &resource_discard[3], &resource_discard[4] ) != 5 )
@@ -1583,7 +1616,7 @@ void trade_with_player( player *candidate, player *player_A )
     // candidate decision
     int32_t candidate_decision = 1;
     
-    if( candidate->id == 1 )
+    if( auto_battle_flag == 0 && candidate->id == 1 )
     {
 	printf(GREEN"@Player1, do you want to trade with player %d with giving one ", player_A->id );
 
@@ -1654,7 +1687,7 @@ void trade_with_player( player *candidate, player *player_A )
     /* Trading */
     if( candidate_decision == 2 )
     {
-	printf("Player %d doesn't want to trade with you...\nTrade Fail\n", candidate->id );
+	printf("Player %d rejects to trade with Player %d!\n", candidate->id, player_A->id );
 	return;
     }
 
@@ -1678,11 +1711,11 @@ void trade_with_player( player *candidate, player *player_A )
     }
     else if( !is_resource_enough( player_A->resource, resource_discard ) )
     {
-		if(player_A->id == 1) printf(RED"\nYou don't have enough resource!\n\n"WHITE);
+		if(auto_battle_flag == 0 && player_A->id == 1) printf(RED"\nYou don't have enough resource!\n\n"WHITE);
     }
     else if( !is_resource_enough( candidate->resource, resource_get ) )
     {
-		if(player_A->id == 1) printf(RED"\nPlayer %d does't have enough resource!\n\n"WHITE, candidate->id );
+		if(auto_battle_flag == 0 && player_A->id == 1) printf(RED"\nPlayer %d does't have enough resource!\n\n"WHITE, candidate->id );
     }
     
     return;
@@ -1720,15 +1753,31 @@ int32_t trade_with_port( player *player_A, landbetween **maps, int32_t get_choic
 int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
     render_map(renderer, map);
     player **players = map->players;
+    printf("Player %d use the knight card\n", id);
     
     // move the robber
-    if(id == 1) render_map_piece_num(renderer, map);
+    if(auto_battle_flag == 0 && id == 1) render_map_piece_num(renderer, map);
     point p = move_robber(map, id);
     printf("Player %d move the robber to (%d, %d)\n", id, p.y, p.x);
     render_map(renderer, map);
 
     // let the player who roll the dice to choose a player to steal resource
     p = from_screen_to_coor_piece(p.x, p.y);
+
+    map->players[get_player_index(map, id)]->number_of_dev_card -= 1;
+    struct list_head *pos = NULL;
+    list_for_each( pos,  map->players[ player_index( id, map->players ) ]->devcard_list)
+    {
+	devcard *card = list_entry( pos, devcard, node );
+	if( card->type == KNIGHT && card->used == 0 )
+	{
+	    card->used = 1;
+	    break;
+	}
+    }
+
+    most_knight_check(renderer, map);
+    render_map(renderer, map);
 
     POINT_AROUND_PIECE(neighbor, p.x, p.y, 1);
     int neighbor_player[5] = {0};
@@ -1751,12 +1800,12 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
         return 0;
     }
     if(neighbor_player[0] == 0){
-        if(id == 1)printf(RED"\nYou can steal from no one.\n\n"WHITE);
+        if(auto_battle_flag == 0 && id == 1)printf(RED"\nYou can steal from no one.\n\n"WHITE);
         return 0;
     }
     else{
         int target_id = 0;
-        if(id == 1){
+        if(auto_battle_flag == 0 && id == 1){
             while(1){
                 printf("\tChoose a player to steal resource(enter 0 to give up): ");
                 if(scanf("%d", &target_id) != 1){
@@ -1786,8 +1835,10 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
         }
         else{
             target_id = rand() % 4 + 1;
-            while(target_id == id || resource_num(target_id, map) == 0 || neighbor_player[target_id] == 0)
+            while(target_id == id || resource_num(target_id, map) == 0 || neighbor_player[target_id] == 0){
                 target_id = rand() % 4 + 1;
+                if(random()%10000 < 1) return 0;
+            }
         }
 
         int resource_type = rand() % 5;
@@ -1800,21 +1851,6 @@ int knight_action(SDL_Renderer *renderer, mapInfo *map, const int id){
         printf("Player %d steal resource from Player %d\n", id, target_id);
     }
     players[player_index(id, players)]->number_of_knights ++;
-
-    map->players[get_player_index(map, id)]->number_of_dev_card -= 1;
-    struct list_head *pos = NULL;
-    list_for_each( pos,  map->players[ player_index( id, map->players ) ]->devcard_list)
-    {
-	devcard *card = list_entry( pos, devcard, node );
-	if( card->type == KNIGHT && card->used == 0 )
-	{
-	    card->used = 1;
-	    break;
-	}
-    }
-
-    most_knight_check(renderer, map);
-    render_map(renderer, map);
     return 0;
 }
 
@@ -1936,17 +1972,20 @@ void dfs(mapInfo *map, const int enter, const int graph[ROAD_NUM][ROAD_NUM], int
             }
             if(flag == 1) continue;
 
-            int tmp[ROAD_NUM] = {0};
-            for(int j = 0; j < ROAD_NUM; j++) tmp[j] = got_road[j];
-            tmp[i] = 1;
+            int tmp_road[ROAD_NUM] = {0};
+            int tmp_land[LAND_NUM] = {0};
+            for(int j = 0; j < ROAD_NUM; j++) tmp_road[j] = got_road[j];
+            for(int j = 0; j < LAND_NUM; j++) tmp_land[j] = got_land[j];
+
+            tmp_road[i] = 1;
             if((map->roads[enter]->start.x == map->roads[i]->start.x && map->roads[enter]->start.y == map->roads[i]->start.y) || (map->roads[enter]->start.x == map->roads[i]->end.x && map->roads[enter]->start.y == map->roads[i]->end.y)){
-                got_land[get_land_p(map, map->roads[enter]->start)] = 1;
+                tmp_land[get_land_p(map, map->roads[enter]->start)] = 1;
             }
             if((map->roads[enter]->end.x == map->roads[i]->start.x && map->roads[enter]->end.y == map->roads[i]->start.y) || (map->roads[enter]->end.x == map->roads[i]->end.x && map->roads[enter]->end.y == map->roads[i]->end.y)){
-                got_land[get_land_p(map, map->roads[enter]->end)] = 1;
+                tmp_land[get_land_p(map, map->roads[enter]->end)] = 1;
             }
 
-            dfs(map, i, graph, tmp, got_land, level + 1, max);
+            dfs(map, i, graph, tmp_road, tmp_land, level + 1, max);
         }
     }
 }
@@ -1961,7 +2000,7 @@ void dfs(mapInfo *map, const int enter, const int graph[ROAD_NUM][ROAD_NUM], int
 void monopoly_action( mapInfo *info, int id )
 {
     int32_t get_choice = 30;
-    if( id == 1 ) // Player version
+    if( auto_battle_flag == 0 && id == 1 ) // Player version
     {
 	printf("Which resource do you want to get ( 0: BRICK, 1: LUMBER, 2: WOOL, 3: GRAIN, 4: ORE): ");
 	if( scanf("%d", &get_choice ) != 1 )
@@ -2044,7 +2083,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 {
     int32_t get_choice1 = 0;
     int32_t get_choice2 = 0;
-    if( id == 1 ) // Player version
+    if( auto_battle_flag == 0 && id == 1 ) // Player version
     {
 	while( 1 )
 	{
@@ -2176,7 +2215,7 @@ int victory_check(mapInfo *map){
             if(map->players[i]->has_longest_road) printf(", has the LONGEST ROAD");
             if(map->players[i]->has_most_knights) printf(", has the MOST KINGHT");
             printf(".\n");
-            printf("Player %d win!\n\n", map->players[i]->id);
+            printf("\033[1m"YELLOW"Player %d win!\n\n""\033[0m", map->players[i]->id);
             return map->players[i]->id;
         }
     }
@@ -2198,7 +2237,7 @@ void dev_card_action( SDL_Renderer *renderer, mapInfo *info, int id )
     player *player_A = info->players[ player_index( id, info->players ) ];
 
     int32_t dev_choice = 0;
-    if( id == 1 ) // Player version
+    if( auto_battle_flag == 0 && id == 1 ) // Player version
     {
         printf("Welcome to developement card action, now you have %d card(s): \n", player_A->number_of_dev_card);
         struct list_head *pos = NULL;
