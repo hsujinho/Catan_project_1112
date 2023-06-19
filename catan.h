@@ -258,7 +258,7 @@ void print_season(){
     }
     else if(season_turn == WINTER){
         printf("\033[37m""*\\ Winter Is Coming /*\n"WHITE);
-        printf("\033[1;37m""You can take the resource even though the robber is on the piece.\n"WHITE);
+        printf("\033[1;37m""Player can take the resource even though the robber is on the piece.\n"WHITE);
 	if( season_flag == 1 && season_turn != WINTER && pirate == 1 )
 	{
 	    printf("\033[1;37m""* Pirate appears\n"WHITE);
@@ -1121,7 +1121,8 @@ int take_resource(int DP, mapInfo *map, int *resource, int first_id){
     for(int k = 0; k < PLAYER_NUM; k++){
         // for each piece with same dice point && doesn't have robber
         for(int i = 0; i < PIECE_NUM; i++){
-            if(DP == pieces[i]->number && pieces[i]->robberFlag == false){
+            if(DP == pieces[i]->number && pieces[i]->robberFlag == true && (season_flag == 1 && season_turn == WINTER))printf("\033[1;37m""Robber can't prevent player taking resource."WHITE);
+            if(DP == pieces[i]->number && (pieces[i]->robberFlag == false || (season_flag == 1 && season_turn == WINTER))){
                 const int x = pieces[i]->p.x;
                 const int y = pieces[i]->p.y;
                 // for each land between around the piece
@@ -1145,7 +1146,7 @@ int take_resource(int DP, mapInfo *map, int *resource, int first_id){
                 if(season_turn == AUTUMN)printf("\033[1;32m");
                 if(season_turn == WINTER)printf("\033[1;37m");
 
-                            printf("\033[1;35m""Player %d get more ore because of diastrophism\n"WHITE, players[player_index(turn[k], players)]->id);
+                            printf("Player %d get more ore because of diastrophism\n"WHITE, players[player_index(turn[k], players)]->id);
                             point ++;
 			}
                         // if the resource is not enough
@@ -2329,7 +2330,7 @@ int32_t year_of_plenty_action( mapInfo *info, int id )
 
     if( season_flag == 1 && season_turn == 2 )
     {
-	printf("Player %d has used year_of_plenty card and freely get 3 resource from bank\n", info->players[ player_index( id, info->players ) ]->id );
+	printf("\033[1;32m""Player %d has used year_of_plenty card and freely get 3 resource from bank\n"WHITE, info->players[ player_index( id, info->players ) ]->id );
     }
     else
     {
