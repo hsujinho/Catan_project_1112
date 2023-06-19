@@ -210,6 +210,8 @@ void print_help(){
 
 int season_flag = 0;
 int season_turn = 0;
+int pirate = 0;
+int diastrophism = 0;
 
 #define SPRING 0
 #define SUMMER 1
@@ -221,26 +223,59 @@ void print_season(){
     if(season_turn == SPRING){
         printf("\033[35m""*\\ Spring Is Coming /*\n"WHITE);
         printf("\033[1;35m""Fields will produce more grain.\n"WHITE);
+	if( season_flag == 1 && season_turn != WINTER && pirate == 1 )
+	{
+	    printf("\033[1;35m""* Pirate appears\n"WHITE);
+	}
+	if( season_flag == 1 && diastrophism == 1 )
+	{
+	    printf("\033[1;35m""* Diastrophism appears\n"WHITE);
+	}
     }
     else if(season_turn == SUMMER){
         printf("\033[36m""*\\ Summer Is Coming /*\n"WHITE);
         printf("\033[1;36m""Forest will produce more lumber.\n"WHITE);
+	if( season_flag == 1 && season_turn != WINTER && pirate == 1 )
+	{
+	    printf("\033[1;36m""* Pirate appears\n"WHITE);
+	}
+	if( season_flag == 1 && diastrophism == 1 )
+	{
+	    printf("\033[1;36m""* Diastrophism appears\n"WHITE);
+	}
     }
     else if(season_turn == AUTUMN){
         printf("\033[32m""*\\ Autumn Is Coming /*\n"WHITE);
         printf("\033[1;32m""Year of plenty card will take more resource.\n"WHITE);
+	if( season_flag == 1 && season_turn != WINTER && pirate == 1 )
+	{
+	    printf("\033[1;32m""* Pirate appears\n"WHITE);
+	}
+	if( season_flag == 1 && diastrophism == 1 )
+	{
+	    printf("\033[1;32m""* Diastrophism appears\n"WHITE);
+	}
     }
     else if(season_turn == WINTER){
         printf("\033[37m""*\\ Winter Is Coming /*\n"WHITE);
         printf("\033[1;37m""You can take the resource even though the robber is on the piece.\n"WHITE);
+	if( season_flag == 1 && season_turn != WINTER && pirate == 1 )
+	{
+	    printf("\033[1;37m""* Pirate appears\n"WHITE);
+	}
+	if( season_flag == 1 && diastrophism == 1 )
+	{
+	    printf("\033[1;37m""* Diastrophism appears\n"WHITE);
+	}
     }
+
+
+
     PRINT_WHITE;
     sleep(1);
 }
 
 int auto_battle_flag = 0;
-
-int pirate = 0;
 
 // function declaration
 
@@ -322,11 +357,6 @@ void print_player(mapInfo *map);
 
 void print_player(mapInfo *map){
 
-    /* Print season status and some features */
-    if( season_flag == 1 && season_turn != WINTER && pirate == 1 )
-    {
-	printf(BLUE"* Pirate appears\n"WHITE);
-    }
 
     player **p = map->players;
     for(int i = 0; i < PLAYER_NUM; i++){
@@ -1108,6 +1138,11 @@ int take_resource(int DP, mapInfo *map, int *resource, int first_id){
                             printf("\033[1;36m""Player %d get more lumber because of summer\n"WHITE, players[player_index(turn[k], players)]->id);
                             point ++;
                         }
+			if( season_flag && pieces[i]->eco_type == ORE && diastrophism )
+			{
+                            printf("\033[1;36m""Player %d get more ore because of diastrophism\n"WHITE, players[player_index(turn[k], players)]->id);
+                            point ++;
+			}
                         // if the resource is not enough
                         if(resource[pieces[i]->eco_type] < point){
                             players[player_index(turn[k], players)]->resource[pieces[i]->eco_type] += resource[pieces[i]->eco_type];

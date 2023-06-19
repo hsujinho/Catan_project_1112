@@ -280,6 +280,15 @@ int main(int argc, char *argv[]){
 		else		    pirate = 0;
 	    }
 
+	    /* Diastrophism prob */
+	    if( season_flag == 1 )
+	    {
+		int diastrophism_prob = rand() % 100;
+
+		if( diastrophism_prob > 70 )	diastrophism = 1;
+		else				diastrophism = 0;
+	    }
+
 	    /* Season turn */
 	    if( season_flag == 1 )  season_turn = ( season_turn + 1 ) % 4;
 
