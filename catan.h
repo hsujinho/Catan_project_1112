@@ -24,6 +24,7 @@
 #define NUM_OFFSET ((PIECE_SIZE - NUM_SIZE) / 2)
 #define Y_OFFSET 80
 #define NUMBER_PIXEL 35
+#define CIRCLE_RAD 15
 
 #define ARR_NUM(arr, type) (sizeof(arr) / sizeof(type))
 #define POINT_AROUND_PIECE(name, x, y, d) point name[6] = {{x, y-2*d}, {x-d, y}, {x+d, y}, {x-d, y-d}, {x+d, y-d}, {x, y+d}}
@@ -31,6 +32,8 @@
 #define PRESS_ENTER printf("Press Enter to continue...\n"); \
                     char c = 0;\
                     scanf("%c", &c);
+
+#define ALPHA 25
 
 // randomize times
 #define TIMES 100
@@ -284,6 +287,7 @@ void render_pieces(SDL_Renderer *renderer, mapInfo *map);
 void render_lands(SDL_Renderer *renderer, mapInfo *map);
 void render_roads(SDL_Renderer *renderer, mapInfo *map);
 void render_map(SDL_Renderer *renderer, mapInfo *map);
+void render_circle(SDL_Renderer *renderer, int x, int y, int rad, int r, int g, int b, int a);
 
 // some tool
 void randomize(void **array, size_t n, size_t size);
@@ -648,6 +652,31 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
         y = y + y / 2;
         x *= VIC_LEN;
         y *= VIC_LEN; 
+        x = x + PIECE_SIZE / 2 - LAND_SIZE / 2 + CIRCLE_RAD;
+        y = y + PIECE_SIZE / 2 - LAND_SIZE / 2 + CIRCLE_RAD;
+
+        if(valid_point_mat[lands[i]->p.y][lands[i]->p.x] == TYPE_PORT_ANY)
+            render_circle(renderer, x, y, CIRCLE_RAD, 255, 80, 255, ALPHA);
+        else if(valid_point_mat[lands[i]->p.y][lands[i]->p.x] == TYPE_PORT_BRICK)
+            render_circle(renderer, x, y, CIRCLE_RAD, 255, 86, 80, ALPHA);
+        else if(valid_point_mat[lands[i]->p.y][lands[i]->p.x] == TYPE_PORT_LUMBER)
+            render_circle(renderer, x, y, CIRCLE_RAD, 200, 98, 0, ALPHA);
+        else if(valid_point_mat[lands[i]->p.y][lands[i]->p.x] == TYPE_PORT_WOOL)
+            render_circle(renderer, x, y, CIRCLE_RAD, 210, 210, 210, ALPHA);
+        else if(valid_point_mat[lands[i]->p.y][lands[i]->p.x] == TYPE_PORT_GRAIN)
+            render_circle(renderer, x, y, CIRCLE_RAD, 246, 218, 0, ALPHA);
+        else if(valid_point_mat[lands[i]->p.y][lands[i]->p.x] == TYPE_PORT_ORE)
+            render_circle(renderer, x, y, CIRCLE_RAD, 104, 78, 56, ALPHA);
+    }   
+
+
+    for(int i = 0; i < LAND_NUM; i++){
+        int x = lands[i]->p.x;
+        int y = lands[i]->p.y;
+        x *= 2;
+        y = y + y / 2;
+        x *= VIC_LEN;
+        y *= VIC_LEN; 
 
         SDL_Surface *land_surface = NULL;
         if(lands[i]->has_building){
@@ -691,6 +720,23 @@ void render_map(SDL_Renderer *renderer, mapInfo *map){
 
     SDL_RenderPresent(renderer);
 }
+
+void render_circle(SDL_Renderer *renderer, int x, int y, int rad, int r, int g, int b, int a){
+    //setting color 
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawColor(renderer, r, g, b, a);
+
+    // draw circle and fill it with the color
+    for(int i = 0; i < 360; i++){
+        double angle = i * 3.1415926535 / 180;
+        int x1 = x + rad * cos(angle);
+        int y1 = y + rad * sin(angle);
+        SDL_RenderDrawLine(renderer, x1, y1, x, y);
+    }
+
+    SDL_RenderCopy(renderer, NULL, NULL, NULL);
+}
+
 
 // return the length of a list, excluding the head
 int list_head_length(struct list_head *head){
