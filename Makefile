@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -Og $(shell pkg-config --cflags sdl2 sdl2_image)
+CFLAGS = -Wall -Wextra -g -Og -lm $(shell pkg-config --cflags sdl2 sdl2_image)
 LDFLAGS = $(shell pkg-config --libs sdl2 sdl2_image)
 
 all: main
