@@ -1,4 +1,7 @@
 #include "catan.h"
+#include "game_init.h"
+#include "render.h"
+#include "utils.h"
 #include "color.h"
 #include "build.h"
 
