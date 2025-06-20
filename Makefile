@@ -4,8 +4,10 @@ LDFLAGS = $(shell pkg-config --libs sdl2 sdl2_image) -lm
 
 all: main
 
-main: main.o
-	$(CC) $^ -o $@ $(LDFLAGS)
+OBJS = main.o render.o game_init.o utils.o
+
+main: $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
 .PHONY: clean
 clean:
